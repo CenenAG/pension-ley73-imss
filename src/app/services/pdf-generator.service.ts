@@ -35,6 +35,7 @@ export class PdfGeneratorService {
 
     y = this.drawHeader(doc, pw);
     y = this.drawContextBar(doc, y, opts, pw);
+    y = this.drawSbcTable(doc, y, opts, pw, ph);
     y = this.drawResultSection(doc, y, result, pw);
     y = this.drawSummaryGrid(doc, y, result, pw);
     y = this.drawSeparator(doc, y, pw);
@@ -117,6 +118,153 @@ export class PdfGeneratorService {
     doc.text(this.capitalizeEstado(opts.estadoCivil), c3 + 15, y + 15);
 
     return y + 24;
+  }
+
+  private drawSbcTable(doc: jsPDF, startY: number, opts: any, pw: number, ph: number): number {
+    const entries: SbcEntry[] = opts.effectiveEntries ?? [];
+    const corteInfo: Corte250Info = opts.corteInfo;
+    const showEffective = corteInfo.excede250;
+    const cw = this.cw(doc);
+    let y = startY;
+
+    const headerHeight = 8;
+    const rowHeight = 6.5;
+    const bottomMargin = 20;
+    const tableHeader = headerHeight + rowHeight * (entries.length + 1);
+
+    if (y + tableHeader > ph - bottomMargin) {
+      this.drawFooter(doc, pw, ph);
+      doc.addPage();
+      y = this.M;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(13, 148, 136);
+    doc.text('BASE DE C\u00c1LCULO SBC', this.M, y + 5);
+    y += 8;
+
+    if (corteInfo.fechaInicioConsiderada && corteInfo.fechaFinConsiderada) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(74, 74, 104);
+      const periodoStr = `Periodo: ${corteInfo.fechaInicioConsiderada.toLocaleDateString('es-MX')} al ${corteInfo.fechaFinConsiderada.toLocaleDateString('es-MX')}`;
+      doc.text(periodoStr, this.M, y);
+      y += 5;
+    }
+
+    const colSbc = 36;
+    const colFechaIni = 30;
+    const colFechaFin = 30;
+    const colSemanas = 22;
+    const colSemEfectivas = showEffective ? 26 : 0;
+    const colTotal = cw;
+
+    const cols: { label: string; width: number }[] = [
+      { label: 'SBC (Diario)', width: colSbc },
+      { label: 'Fecha Inicio', width: colFechaIni },
+      { label: 'Fecha Fin', width: colFechaFin },
+      { label: 'Semanas', width: colSemanas },
+    ];
+    if (showEffective) {
+      cols.push({ label: 'Sem. Efect.', width: colSemEfectivas });
+    }
+
+    doc.setFillColor(13, 148, 136);
+    doc.rect(this.M, y, cw, headerHeight, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(255, 255, 255);
+
+    let xPos = this.M;
+    for (const col of cols) {
+      doc.text(col.label, xPos + 2, y + 5.5);
+      xPos += col.width;
+    }
+    y += headerHeight;
+
+    for (const entry of entries) {
+      if (y + rowHeight > ph - bottomMargin) {
+        this.drawFooter(doc, pw, ph);
+        doc.addPage();
+        y = this.M;
+      }
+
+      const isExcluded = entry.efectivo === false;
+      const isPartial = entry.semanasEfectivas != null && entry.semanasEfectivas < (entry.semanas || 0);
+
+      if (isExcluded) {
+        doc.setFillColor(245, 240, 240);
+      } else if (isPartial) {
+        doc.setFillColor(255, 250, 240);
+      } else {
+        doc.setFillColor(252, 252, 250);
+      }
+      doc.rect(this.M, y, cw, rowHeight, 'F');
+
+      doc.setDrawColor(230, 230, 225);
+      doc.setLineWidth(0.15);
+      doc.line(this.M, y + rowHeight, this.M + cw, y + rowHeight);
+
+      doc.setFont('courier', isExcluded ? 'normal' : 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(isExcluded ? 160 : 26, isExcluded ? 160 : 26, isExcluded ? 160 : 46);
+
+      xPos = this.M;
+      for (let ci = 0; ci < cols.length; ci++) {
+        const col = cols[ci];
+        let val = '';
+        if (ci === 0) val = PdfGeneratorService.currency(entry.sbc);
+        else if (ci === 1) val = entry.fechaInicio ? entry.fechaInicio.toLocaleDateString('es-MX') : '\u2014';
+        else if (ci === 2) val = entry.fechaFin ? entry.fechaFin.toLocaleDateString('es-MX') : '\u2014';
+        else if (ci === 3) val = (entry.semanas || 0).toString();
+        else if (ci === 4 && showEffective) {
+          val = isExcluded ? '\u2014' : (entry.semanasEfectivas?.toString() ?? (entry.semanas?.toString() ?? '\u2014'));
+        }
+
+        const align = (ci === 0) ? 'left' : (ci >= 3 ? 'right' : 'left');
+        doc.text(val, xPos + (align === 'right' ? col.width - 3 : 2), y + 4.5, { align: align as 'left' | 'right' });
+        xPos += col.width;
+      }
+
+      y += rowHeight;
+    }
+
+    if (entries.length > 0) {
+      doc.setDrawColor(13, 148, 136);
+      doc.setLineWidth(0.4);
+      doc.line(this.M, y, this.M + cw, y);
+
+      const totalSem = entries.reduce((s, e) => s + (e.semanas || 0), 0);
+      const EffectiveSem = entries.reduce((s, e) => s + (e.semanasEfectivas ?? (e.efectivo !== false ? e.semanas ?? 0 : 0)), 0);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(13, 148, 136);
+
+      let totalLabel = `Total: ${totalSem} semanas`;
+      if (showEffective) {
+        totalLabel += ` | Efectivas: ${EffectiveSem} de 250`;
+      } else {
+        totalLabel += ` de 250`;
+      }
+
+      const promedio = entries.length > 0
+        ? entries.filter(e => e.efectivo !== false).reduce((acc, e) => acc + e.sbc * (e.semanasEfectivas ?? e.semanas ?? 0), 0) /
+          entries.filter(e => e.efectivo !== false).reduce((acc, e) => acc + (e.semanasEfectivas ?? e.semanas ?? 0), 0)
+        : 0;
+
+      doc.text(totalLabel, this.M + 2, y + 5);
+
+      if (promedio > 0) {
+        doc.text(`Promedio ponderado: ${PdfGeneratorService.currency(promedio)}`, this.M + cw - 3, y + 5, { align: 'right' });
+      }
+
+      y += 8;
+    }
+
+    return y + 4;
   }
 
   private drawResultSection(doc: jsPDF, y: number, result: PensionResult, pw: number): number {
