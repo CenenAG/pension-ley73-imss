@@ -30,12 +30,13 @@ export class App {
   fechaReferencia = signal<Date | null>(new Date(DEFAULT_CONFIG.fechaReferencia.getTime()));
 
   sbcEntries = signal<SbcEntry[]>(
-    DEFAULT_CONFIG.sbcEntries.map(({ id, sbc, fechaInicio, fechaFin, dias }) => ({
+    DEFAULT_CONFIG.sbcEntries.map(({ id, sbc, fechaInicio, fechaFin, dias, semanas }) => ({
       id,
       sbc,
       fechaInicio: fechaInicio ? new Date(fechaInicio.getTime()) : null,
       fechaFin: fechaFin ? new Date(fechaFin.getTime()) : null,
       dias,
+      semanas,
     })),
   );
 

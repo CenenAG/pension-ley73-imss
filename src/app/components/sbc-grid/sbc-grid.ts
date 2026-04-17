@@ -34,42 +34,33 @@ export class SbcGridComponent {
     return base.map(entry => {
       const eff = effectiveMap.get(entry.id);
       if (eff) {
-        return { ...entry, efectivo: eff.efectivo, diasEfectivos: eff.diasEfectivos };
+        return { ...entry, efectivo: eff.efectivo, semanasEfectivas: eff.semanasEfectivas };
       }
       return { ...entry };
     });
   });
 
-  totalDias = computed(() =>
-    this.entries().reduce((sum, e) => sum + (e.dias || 0), 0)
-  );
-
   totalSemanas = computed(() =>
-    this.calculator.diasASemanas(this.totalDias())
+    this.entries().reduce((sum, e) => sum + (e.semanas || 0), 0)
   );
 
-  effectiveTotalDias = computed(() => {
+  effectiveTotalSemanas = computed(() => {
     let total = 0;
     for (const e of this.effectiveEntries()) {
       if (e.efectivo !== false) {
-        total += e.diasEfectivos ?? e.dias;
+        total += e.semanasEfectivas ?? e.semanas ?? 0;
       }
     }
     return total;
   });
 
-  effectiveTotalSemanas = computed(() =>
-    this.calculator.diasASemanas(this.effectiveTotalDias())
-  );
-
   entrySemanas(entry: SbcEntry): number {
-    return this.calculator.diasASemanas(entry.dias || 0);
+    return entry.semanas || this.calculator.diasASemanas(entry.dias || 0);
   }
 
   entrySemanasEfectivas(entry: SbcEntry): number | null {
     if (entry.efectivo === false) return null;
-    const dias = entry.diasEfectivos ?? entry.dias;
-    return this.calculator.diasASemanas(dias || 0);
+    return entry.semanasEfectivas ?? entry.semanas ?? null;
   }
 
   promedioPonderado = computed(() => {
@@ -127,11 +118,13 @@ export class SbcGridComponent {
     const value = (event.target as HTMLInputElement).value;
     const date = PensionCalculatorService.parseDateInput(value);
     const updated = [...this.entries()];
+    const dias = this.calculator.calcularDiasEntreFechas(updated[index].fechaInicio, date);
     updated[index] = {
       ...updated[index],
       fechaFin: date,
       fechaFinManual: true,
-      dias: this.calculator.calcularDiasEntreFechas(updated[index].fechaInicio, date),
+      dias,
+      semanas: this.calculator.diasASemanas(dias),
     };
     this.emitOverlapState(updated);
     this.entriesChange.emit(updated);
@@ -163,6 +156,7 @@ export class SbcGridComponent {
       fechaInicio: null,
       fechaFin: null,
       dias: 0,
+      semanas: 0,
     });
     this.nextId.update(v => v + 1);
     this.emitOverlapState(updated);
@@ -225,16 +219,16 @@ export class SbcGridComponent {
   }
 
   isEntryPartial(entry: SbcEntry): boolean {
-    return entry.efectivo !== false && entry.diasEfectivos != null && entry.diasEfectivos !== undefined && entry.diasEfectivos < (entry.dias || 0);
+    return entry.efectivo !== false && entry.semanasEfectivas != null && entry.semanasEfectivas !== undefined && entry.semanasEfectivas < (entry.semanas || 0);
   }
 
   isOverlapping(entry: SbcEntry): boolean {
     return this.overlappingIds().has(entry.id);
   }
 
-  getDiasEfectivos(entry: SbcEntry): number | null {
+  getSemanasEfectivas(entry: SbcEntry): number | null {
     if (entry.efectivo === false) return null;
-    if (entry.diasEfectivos != null && entry.diasEfectivos !== undefined) return entry.diasEfectivos;
-    return entry.dias;
+    if (entry.semanasEfectivas != null && entry.semanasEfectivas !== undefined) return entry.semanasEfectivas;
+    return entry.semanas ?? null;
   }
 }

@@ -26,9 +26,8 @@
           <th class="col-sbc">SBC (Diario)</th>
           <th class="col-fecha">Fecha Inicio</th>
           <th class="col-fecha">Fecha Fin</th>
-          <th class="col-num">Días</th>
           <th class="col-num">Semanas</th>
-          @if (corteInfo().excede1750) {
+          @if (corteInfo().excede250) {
             <th class="col-num">Semanas Efectivas</th>
           }
           <th class="col-action"></th>
@@ -74,9 +73,8 @@
                 (change)="onFechaFinChange(i, $event)"
               />
             </td>
-            <td class="col-num">{{ entry.dias || '—' }}</td>
-            <td class="col-num">{{ entry.dias ? entrySemanas(entry) : '—' }}</td>
-            @if (corteInfo().excede1750) {
+            <td class="col-num">{{ (entry.semanas || entry.dias) ? entrySemanas(entry) : '—' }}</td>
+            @if (corteInfo().excede250) {
               <td class="col-num">
                 @if (isEntryExcluded(entry)) {
                   <span class="excluded-text">—</span>
@@ -99,20 +97,18 @@
           <td><strong>Total registrado</strong></td>
           <td></td>
           <td></td>
-          <td class="col-num">{{ totalDias() }}</td>
           <td class="col-num"><strong>{{ totalSemanas() }}</strong></td>
-          @if (corteInfo().excede1750) {
+          @if (corteInfo().excede250) {
             <td class="col-num"><strong>{{ effectiveTotalSemanas() }}</strong></td>
           }
           <td></td>
         </tr>
-        @if (corteInfo().excede1750) {
+        @if (corteInfo().excede250) {
           <tr class="effective-total">
             <td></td>
             <td><strong>Considerado (250 semanas)</strong></td>
             <td></td>
             <td></td>
-            <td class="col-num">{{ effectiveTotalDias() }} días</td>
             <td class="col-num"><strong>{{ effectiveTotalSemanas() }} sem.</strong></td>
             <td></td>
           </tr>
@@ -120,7 +116,7 @@
         @if (promedioPonderado() > 0) {
           <tr class="promedio">
             <td></td>
-            <td colspan="4"><strong>Promedio ponderado SBC {{ corteInfo().excede1750 ? '(últimas 250 semanas)' : '' }}</strong></td>
+            <td colspan="3"><strong>Promedio ponderado SBC {{ corteInfo().excede250 ? '(últimas 250 semanas)' : '' }}</strong></td>
             <td colspan="3"><strong>{{ promedioPonderado() | currencyMXN }}</strong></td>
           </tr>
         }
@@ -132,7 +128,7 @@
     <div class="periodo-info">
       <span class="periodo-label">Periodo considerado:</span>
       {{ corteInfo().fechaInicioConsiderada!.toLocaleDateString('es-MX') }} al {{ corteInfo().fechaFinConsiderada!.toLocaleDateString('es-MX') }}
-      @if (corteInfo().excede1750) {
+      @if (corteInfo().excede250) {
         — <strong>{{ effectiveTotalSemanas() }} semanas efectivas</strong> de 250 requeridas
       } @else {
         — <strong>{{ totalSemanas() }} semanas</strong> de 250 requeridas
@@ -140,17 +136,17 @@
     </div>
   }
 
-  @if (corteInfo().excede1750) {
+  @if (corteInfo().excede250) {
     <div class="corte-info">
       {{ corteInfo().mensaje }}
     </div>
-  } @else if (totalDias() > 0 && totalDias() < 1750) {
+  } @else if (totalSemanas() > 0 && totalSemanas() < 250) {
     <div class="warning">
-      Faltan {{ 1750 - totalDias() }} días (≈ {{ 250 - totalSemanas() }} semanas) para completar las 250 semanas requeridas.
+      Faltan {{ 250 - totalSemanas() }} semanas para completar las 250 semanas requeridas.
     </div>
-  } @else if (totalDias() >= 1750) {
+  } @else if (totalSemanas() >= 250) {
     <div class="success">
-      Periodo completo: {{ totalDias() }} días ≈ {{ totalSemanas() }} semanas (regla IMSS: días ÷ 7, sobrante >3 = +1 semana).
+      Periodo completo: {{ totalSemanas() }} semanas (regla IMSS: días ÷ 7, sobrante >3 = +1 semana).
     </div>
   }
 

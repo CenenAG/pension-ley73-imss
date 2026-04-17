@@ -6,7 +6,7 @@ import {
   EDAD_FACTORES,
   FACTOR_FOX,
   MIN_SEMANAS,
-  DIAS_PROMEDIO,
+  SEMANAS_PROMEDIO,
   PensionResult,
   CalculationStep,
   AsignacionFamiliar,
@@ -53,9 +53,11 @@ export class PensionCalculatorService {
       const entry = { ...sorted[i] };
       if (entry.fechaFinManual && entry.fechaFin) {
         entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
+        entry.semanas = this.diasASemanas(entry.dias);
       } else if (i === 0) {
         entry.fechaFin = new Date(fechaFinal);
         entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
+        entry.semanas = this.diasASemanas(entry.dias);
       } else {
         const prevInicio = sorted[i - 1].fechaInicio;
         if (prevInicio) {
@@ -64,6 +66,7 @@ export class PensionCalculatorService {
           entry.fechaFin = fin;
         }
         entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
+        entry.semanas = this.diasASemanas(entry.dias);
       }
       result.push(entry);
     }
@@ -79,97 +82,108 @@ export class PensionCalculatorService {
       return {
         fechaInicioConsiderada: null,
         fechaFinConsiderada: null,
-        totalDiasOriginales: 0,
-        totalDiasEfectivos: 0,
-        excede1750: false,
+        totalSemanasOriginales: 0,
+        totalSemanasEfectivas: 0,
+        excede250: false,
         mensaje: 'No hay períodos válidos',
       };
     }
 
-    const totalDiasOriginales = sorted.reduce((sum, e) => sum + e.dias, 0);
+    const totalSemanasOriginales = sorted.reduce((sum, e) => sum + (e.semanas || 0), 0);
     const fechaFinConsiderada = sorted[0].fechaFin;
 
-    if (totalDiasOriginales <= DIAS_PROMEDIO) {
+    if (totalSemanasOriginales <= SEMANAS_PROMEDIO) {
       const fechaInicioConsiderada = sorted[sorted.length - 1].fechaInicio;
       return {
         fechaInicioConsiderada,
         fechaFinConsiderada,
-        totalDiasOriginales,
-        totalDiasEfectivos: totalDiasOriginales,
-        excede1750: false,
-        mensaje: totalDiasOriginales < DIAS_PROMEDIO
-          ? `Total: ${totalDiasOriginales} días. Faltan ${DIAS_PROMEDIO - totalDiasOriginales} días para completar los 1,750 requeridos.`
-          : `Total: ${totalDiasOriginales} días (= 250 semanas). Se alcanzan los 1,750 días.`,
+        totalSemanasOriginales,
+        totalSemanasEfectivas: totalSemanasOriginales,
+        excede250: false,
+        mensaje: totalSemanasOriginales < SEMANAS_PROMEDIO
+          ? `Total: ${totalSemanasOriginales} semanas. Faltan ${SEMANAS_PROMEDIO - totalSemanasOriginales} semanas para completar las 250 requeridas.`
+          : `Total: ${totalSemanasOriginales} semanas (= 250 semanas). Se alcanzan las 250 semanas.`,
       };
     }
 
-    const fechaCorte = new Date(fechaFinConsiderada!);
-    fechaCorte.setDate(fechaCorte.getDate() - DIAS_PROMEDIO + 1);
+    let semanasRestantes = SEMANAS_PROMEDIO;
+    let fechaInicioConsiderada: Date | null = null;
+
+    for (const entry of sorted) {
+      const sem = entry.semanas || 0;
+      if (semanasRestantes > sem) {
+        semanasRestantes -= sem;
+      } else {
+        const diasEfectivos = Math.round((semanasRestantes / sem) * (entry.dias || 0));
+        const inicio = new Date(entry.fechaFin!);
+        inicio.setDate(inicio.getDate() - diasEfectivos + 1);
+        fechaInicioConsiderada = inicio;
+        break;
+      }
+    }
+
+    if (!fechaInicioConsiderada) {
+      fechaInicioConsiderada = sorted[sorted.length - 1].fechaInicio;
+    }
 
     return {
-      fechaInicioConsiderada: fechaCorte,
+      fechaInicioConsiderada,
       fechaFinConsiderada,
-      totalDiasOriginales,
-      totalDiasEfectivos: DIAS_PROMEDIO,
-      excede1750: true,
-      mensaje: `Se exceden los 1,750 días (${totalDiasOriginales}). Se consideran los últimos 1,750 días a partir del ${fechaCorte.toLocaleDateString('es-MX')}.`,
+      totalSemanasOriginales,
+      totalSemanasEfectivas: SEMANAS_PROMEDIO,
+      excede250: true,
+      mensaje: `Se exceden las 250 semanas (${totalSemanasOriginales}). Se consideran las últimas 250 semanas a partir del ${fechaInicioConsiderada!.toLocaleDateString('es-MX')}.`,
     };
   }
 
   calcularEffectiveEntries(entries: SbcEntry[], corteInfo: Corte250Info): SbcEntry[] {
-    if (!corteInfo.excede1750) {
-      return entries.map(e => ({ ...e, efectivo: true, diasEfectivos: e.dias }));
+    if (!corteInfo.excede250) {
+      return entries.map(e => ({ ...e, efectivo: true, semanasEfectivas: e.semanas }));
     }
 
     const sorted = [...entries].filter(e => e.sbc > 0 && e.fechaInicio && e.fechaFin)
       .sort((a, b) => (b.fechaInicio?.getTime() ?? 0) - (a.fechaInicio?.getTime() ?? 0));
 
-    const fechaCorteMs = corteInfo.fechaInicioConsiderada!.getTime();
-    let diasRestantes = DIAS_PROMEDIO;
+    let semanasRestantes = SEMANAS_PROMEDIO;
 
     return sorted.map(entry => {
-      const effective = { ...entry, efectivo: true, diasEfectivos: 0 };
+      const effective = { ...entry, efectivo: true, semanasEfectivas: 0 };
+      const sem = entry.semanas || 0;
 
-      if (diasRestantes <= 0) {
+      if (semanasRestantes <= 0) {
         effective.efectivo = false;
-        effective.diasEfectivos = 0;
+        effective.semanasEfectivas = 0;
         return effective;
       }
 
-      if (entry.fechaInicio!.getTime() >= fechaCorteMs) {
+      if (semanasRestantes >= sem) {
         effective.efectivo = true;
-        effective.diasEfectivos = Math.min(entry.dias, diasRestantes);
-        diasRestantes -= entry.dias;
-      } else if (entry.fechaFin!.getTime() >= fechaCorteMs) {
-        const effectiveInicio = new Date(corteInfo.fechaInicioConsiderada!);
-        const effectiveDias = this.calcularDiasEntreFechas(effectiveInicio, entry.fechaFin);
-        effective.efectivo = true;
-        effective.diasEfectivos = Math.min(effectiveDias, diasRestantes);
-        diasRestantes -= effective.diasEfectivos;
+        effective.semanasEfectivas = sem;
+        semanasRestantes -= sem;
       } else {
-        effective.efectivo = false;
-        effective.diasEfectivos = 0;
+        effective.efectivo = true;
+        effective.semanasEfectivas = Math.round(semanasRestantes);
+        semanasRestantes = 0;
       }
 
-      if (diasRestantes < 0) diasRestantes = 0;
       return effective;
     });
   }
 
-  calcularSalarioPromedioFromEffective(entries: SbcEntry[]): { promedio: number; totalDias: number } {
+  calcularSalarioPromedioFromEffective(entries: SbcEntry[]): { promedio: number; totalSemanas: number } {
     let totalProducto = 0;
-    let totalDias = 0;
+    let totalSemanas = 0;
 
     for (const entry of entries) {
-      const dias = entry.diasEfectivos ?? 0;
-      if (entry.sbc > 0 && dias > 0 && entry.efectivo !== false) {
-        totalProducto += entry.sbc * dias;
-        totalDias += dias;
+      const sem = entry.semanasEfectivas ?? entry.semanas ?? 0;
+      if (entry.sbc > 0 && sem > 0 && entry.efectivo !== false) {
+        totalProducto += entry.sbc * sem;
+        totalSemanas += sem;
       }
     }
 
-    const promedio = totalDias > 0 ? totalProducto / totalDias : 0;
-    return { promedio, totalDias };
+    const promedio = totalSemanas > 0 ? totalProducto / totalSemanas : 0;
+    return { promedio, totalSemanas };
   }
 
   calcularDiasEntreFechas(inicio: Date | null, fin: Date | null): number {
@@ -287,7 +301,7 @@ export class PensionCalculatorService {
   ): PensionResult {
     const steps: CalculationStep[] = [];
 
-    const { promedio: spd, totalDias } = this.calcularSalarioPromedioFromEffective(effectiveEntries);
+    const { promedio: spd, totalSemanas } = this.calcularSalarioPromedioFromEffective(effectiveEntries);
 
     const sbcTopado = Math.min(spd, UMA_2026 * 25);
 
@@ -298,12 +312,12 @@ export class PensionCalculatorService {
     const paso1: CalculationStep = {
       paso: 1,
       titulo: 'Salario Promedio Diario (SPD)',
-      descripcion: corteInfo.excede1750
-        ? `Se calcula el promedio ponderado con los últimos 1,750 días cotizados (${DIAS_PROMEDIO} días = 250 semanas) ${periodoStr}`
-        : `Se calcula el promedio ponderado de los SBC con los ${totalDias} días disponibles ${periodoStr}`,
+      descripcion: corteInfo.excede250
+        ? `Se calcula el promedio ponderado con las últimas 250 semanas cotizadas ${periodoStr}`
+        : `Se calcula el promedio ponderado de los SBC con las ${totalSemanas} semanas disponibles ${periodoStr}`,
       valores: [
-        { label: 'Días efectivos considerados', value: totalDias.toLocaleString() },
-        { label: 'Días requeridos (250 semanas)', value: DIAS_PROMEDIO.toLocaleString() },
+        { label: 'Semanas efectivas consideradas', value: totalSemanas.toLocaleString() },
+        { label: 'Semanas requeridas', value: SEMANAS_PROMEDIO.toLocaleString() },
         { label: 'SPD calculado', value: this.formatCurrency(spd) },
         { label: 'Tope (25 UMAs)', value: this.formatCurrency(UMA_2026 * 25) },
         { label: 'SPD topado', value: this.formatCurrency(sbcTopado) },
