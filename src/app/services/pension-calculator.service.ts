@@ -51,8 +51,11 @@ export class PensionCalculatorService {
     const result: SbcEntry[] = [];
     for (let i = 0; i < sorted.length; i++) {
       const entry = { ...sorted[i] };
-      if (i === 0) {
+      if (entry.fechaFinManual && entry.fechaFin) {
+        entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
+      } else if (i === 0) {
         entry.fechaFin = new Date(fechaFinal);
+        entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
       } else {
         const prevInicio = sorted[i - 1].fechaInicio;
         if (prevInicio) {
@@ -60,8 +63,8 @@ export class PensionCalculatorService {
           fin.setDate(fin.getDate() - 1);
           entry.fechaFin = fin;
         }
+        entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
       }
-      entry.dias = this.calcularDiasEntreFechas(entry.fechaInicio, entry.fechaFin);
       result.push(entry);
     }
 

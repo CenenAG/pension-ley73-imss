@@ -85,8 +85,21 @@ export class SbcGridComponent {
     const value = (event.target as HTMLInputElement).value;
     const date = PensionCalculatorService.parseDateInput(value);
     const updated = [...this.entries()];
-    updated[index] = { ...updated[index], fechaInicio: date };
+    updated[index] = { ...updated[index], fechaInicio: date, fechaFinManual: undefined };
     this.recalculateDatesWithEntries(updated, date ?? undefined);
+  }
+
+  onFechaFinChange(index: number, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    const date = PensionCalculatorService.parseDateInput(value);
+    const updated = [...this.entries()];
+    updated[index] = {
+      ...updated[index],
+      fechaFin: date,
+      fechaFinManual: true,
+      dias: this.calculator.calcularDiasEntreFechas(updated[index].fechaInicio, date),
+    };
+    this.entriesChange.emit(updated);
   }
 
   addRow(): void {
@@ -116,7 +129,7 @@ export class SbcGridComponent {
   private recalculateDatesWithEntries(entries: SbcEntry[], fechaFinal?: Date | null): void {
     const ff = fechaFinal ?? this.fechaFinal();
     if (!ff) {
-      this.entriesChange.emit(entries);
+      this.entriesChange.emit(entries.map(e => ({ ...e, fechaFinManual: undefined })));
       return;
     }
 
@@ -128,13 +141,13 @@ export class SbcGridComponent {
 
     for (let i = 0; i < sorted.length; i++) {
       if (i === 0) {
-        sorted[i] = { ...sorted[i], fechaFin: new Date(ff) };
+        sorted[i] = { ...sorted[i], fechaFin: new Date(ff), fechaFinManual: undefined };
       } else {
         const prevInicio = sorted[i - 1].fechaInicio;
         if (prevInicio) {
           const fin = new Date(prevInicio);
           fin.setDate(fin.getDate() - 1);
-          sorted[i] = { ...sorted[i], fechaFin: fin };
+          sorted[i] = { ...sorted[i], fechaFin: fin, fechaFinManual: undefined };
         }
       }
       sorted[i] = {

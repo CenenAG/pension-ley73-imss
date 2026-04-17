@@ -63,7 +63,13 @@
               />
             </td>
             <td class="col-fecha">
-              <span class="auto-date">{{ formatDate(entry.fechaFin) || '—' }}</span>
+              <input
+                type="date"
+                class="fecha-fin-input"
+                [class.fecha-fin-manual]="entry.fechaFinManual"
+                [value]="formatDate(entry.fechaFin)"
+                (change)="onFechaFinChange(i, $event)"
+              />
             </td>
             <td class="col-num">{{ entry.dias || '—' }}</td>
             @if (corteInfo().excede1750) {

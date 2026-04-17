@@ -6,6 +6,7 @@ export interface SbcEntry {
   dias: number;
   efectivo?: boolean;
   diasEfectivos?: number;
+  fechaFinManual?: boolean;
 }
 
 export interface Corte250Info {

@@ -164,7 +164,7 @@ export class PdfGeneratorService {
       ['% Cuant\u00eda B\u00e1sica', `${result.porcentajeCuantiaBasica}%`],
       ['% Incremento Anual', `${result.porcentajeIncrementoAnual}%`],
       ['A\u00f1os de incremento', result.anosIncremento.toString()],
-      ['Regla de redondeo', result.reglaRedondeo],
+      ['Regla de redondeo', this.shortenRegla(result.reglaRedondeo)],
       ['Factor de edad', result.factorEdadLabel],
     ];
 
@@ -305,5 +305,27 @@ export class PdfGeneratorService {
       soltero: 'Soltero/a',
     };
     return map[estado] || estado;
+  }
+
+  private shortenRegla(regla: string): string {
+    if (regla.includes('NO se reconocen')) {
+      const match = regla.match(/^(\d+)\s/);
+      const sem = match ? match[1] : '?';
+      return `${sem} sem. exced. < 13`;
+    }
+    if (regla.includes('0.5 a\u00f1os')) {
+      const match = regla.match(/^(\d+)\s/);
+      const sem = match ? match[1] : '?';
+      return `${sem} sem. exced. (13-26) = +0.5 a\u00f1o`;
+    }
+    if (regla.includes('1 a\u00f1o completo')) {
+      const match = regla.match(/^(\d+)\s/);
+      const sem = match ? match[1] : '?';
+      return `${sem} sem. exced. (>26) = +1 a\u00f1o`;
+    }
+    if (regla.includes('0 semanas')) {
+      return 'Exactamente 0 semanas';
+    }
+    return regla.length > 30 ? regla.substring(0, 28) + '\u2026' : regla;
   }
 }
