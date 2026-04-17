@@ -308,23 +308,20 @@ export class PdfGeneratorService {
   }
 
   private shortenRegla(regla: string): string {
-    if (regla.includes('NO se reconocen')) {
-      const match = regla.match(/^(\d+)\s/);
-      const sem = match ? match[1] : '?';
-      return `${sem} sem. exced. < 13`;
+    if (regla.includes('residuo 0')) {
+      return '0 sem. exced. \u2192 sin incremento';
     }
-    if (regla.includes('0.5 a\u00f1os')) {
+    if (regla.includes('sin incremento adicional')) {
       const match = regla.match(/^(\d+)\s/);
-      const sem = match ? match[1] : '?';
-      return `${sem} sem. exced. (13-26) = +0.5 a\u00f1o`;
+      return `${match ? match[1] : '?'} sem. \u00f7 52, decimal < 0.25 \u2192 +0`;
+    }
+    if (regla.includes('0.5 a\u00f1o')) {
+      const match = regla.match(/^(\d+)\s/);
+      return `${match ? match[1] : '?'} sem. \u00f7 52, decimal \u2265 0.25 \u2192 +0.5`;
     }
     if (regla.includes('1 a\u00f1o completo')) {
       const match = regla.match(/^(\d+)\s/);
-      const sem = match ? match[1] : '?';
-      return `${sem} sem. exced. (>26) = +1 a\u00f1o`;
-    }
-    if (regla.includes('0 semanas')) {
-      return 'Exactamente 0 semanas';
+      return `${match ? match[1] : '?'} sem. \u00f7 52, decimal \u2265 0.5 \u2192 +1`;
     }
     return regla.length > 30 ? regla.substring(0, 28) + '\u2026' : regla;
   }

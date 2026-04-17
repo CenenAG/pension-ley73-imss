@@ -209,26 +209,26 @@ export class PensionCalculatorService {
     };
   }
 
-  calcularReglaRedondeo(semanasExcedentes: number): { anos: number; residuoSemanas: number; regla: string; anosEfectivos: number } {
-    const anosCompletos = Math.floor(semanasExcedentes / 52);
-    const residuoSemanas = semanasExcedentes % 52;
-    let anosEfectivos = anosCompletos;
+  calcularReglaRedondeo(semanasExcedentes: number): { anos: number; divisionExacta: number; parteDecimal: number; regla: string; anosEfectivos: number } {
+    const divisionExacta = semanasExcedentes / 52;
+    const anos = Math.floor(divisionExacta);
+    const parteDecimal = divisionExacta - anos;
+    let anosEfectivos = anos;
     let regla = '';
 
-    if (residuoSemanas > 0 && residuoSemanas < 13) {
-      regla = `${residuoSemanas} semanas excedentes: menor a 13, NO se reconocen incrementos adicionales`;
-      anosEfectivos = anosCompletos;
-    } else if (residuoSemanas >= 13 && residuoSemanas <= 26) {
-      regla = `${residuoSemanas} semanas excedentes: entre 13 y 26, se reconocen 0.5 años adicionales`;
-      anosEfectivos = anosCompletos + 0.5;
-    } else if (residuoSemanas > 26) {
-      regla = `${residuoSemanas} semanas excedentes: mayor a 26, se reconoce 1 año completo adicional`;
-      anosEfectivos = anosCompletos + 1;
+    if (parteDecimal === 0) {
+      regla = `${semanasExcedentes} ÷ 52 = ${divisionExacta.toFixed(4)}: residuo 0, sin incremento adicional`;
+    } else if (parteDecimal >= 0.25 && parteDecimal < 0.5) {
+      anosEfectivos = anos + 0.5;
+      regla = `${semanasExcedentes} ÷ 52 = ${divisionExacta.toFixed(4)}: parte decimal ${parteDecimal.toFixed(4)} (≥ 0.25 y < 0.5) → se agregan 0.5 años`;
+    } else if (parteDecimal >= 0.5) {
+      anosEfectivos = anos + 1;
+      regla = `${semanasExcedentes} ÷ 52 = ${divisionExacta.toFixed(4)}: parte decimal ${parteDecimal.toFixed(4)} (≥ 0.5) → se agrega 1 año completo`;
     } else {
-      regla = 'Exactamente 0 semanas de residuo';
+      regla = `${semanasExcedentes} ÷ 52 = ${divisionExacta.toFixed(4)}: parte decimal ${parteDecimal.toFixed(4)} (< 0.25) → sin incremento adicional`;
     }
 
-    return { anos: anosCompletos, residuoSemanas, regla, anosEfectivos };
+    return { anos, divisionExacta, parteDecimal, regla, anosEfectivos };
   }
 
   calcularAsignaciones(estadoCivil: EstadoCivil, hijosCount: number, padresCount: number): AsignacionFamiliar[] {
@@ -352,20 +352,21 @@ export class PensionCalculatorService {
     steps.push(paso3);
 
     const semanasExcedentes = Math.max(0, semanasCotizadas - MIN_SEMANAS);
-    const { anos, residuoSemanas, regla, anosEfectivos } = this.calcularReglaRedondeo(semanasExcedentes);
+    const { anos, divisionExacta, parteDecimal, regla, anosEfectivos } = this.calcularReglaRedondeo(semanasExcedentes);
     const incrementoAnualUnitario = sbcTopado * (pctIncremento / 100) * 365;
     const incrementoAnualTotal = incrementoAnualUnitario * anosEfectivos;
 
     const paso4: CalculationStep = {
       paso: 4,
       titulo: 'Incrementos Anuales',
-      descripcion: 'Por cada 52 semanas excedentes a las primeras 500, se aplica el porcentaje de incremento anual',
+      descripcion: `Se dividen las ${semanasExcedentes} semanas excedentes entre 52 para obtener los años de incremento. La parte decimal determina el incremento adicional según la regla de redondeo.`,
       valores: [
         { label: 'Semanas cotizadas totales', value: semanasCotizadas.toLocaleString() },
-        { label: 'Semanas base', value: MIN_SEMANAS.toLocaleString() },
+        { label: 'Semanas base (mínimo)', value: MIN_SEMANAS.toLocaleString() },
         { label: 'Semanas excedentes', value: semanasExcedentes.toLocaleString() },
-        { label: 'Años completos', value: anos.toLocaleString() },
-        { label: 'Semanas residuo', value: residuoSemanas.toLocaleString() },
+        { label: 'División', value: `${semanasExcedentes} ÷ 52 = ${divisionExacta.toFixed(4)}` },
+        { label: 'Años enteros', value: anos.toString() },
+        { label: 'Parte decimal', value: parteDecimal.toFixed(4) },
         { label: 'Regla de redondeo', value: regla },
         { label: 'Años efectivos de incremento', value: anosEfectivos.toString() },
         { label: 'Incremento anual unitario', value: this.formatCurrency(incrementoAnualUnitario) },
@@ -445,7 +446,8 @@ export class PensionCalculatorService {
       cuantiaBasicaAnual,
       semanasExcedentes,
       anosIncremento: anosEfectivos,
-      semanasResiduo: residuoSemanas,
+      divisionExacta,
+      parteDecimal,
       reglaRedondeo: regla,
       incrementoAnualTotal,
       sumaBase,

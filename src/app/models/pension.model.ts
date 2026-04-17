@@ -65,7 +65,8 @@ export interface PensionResult {
   cuantiaBasicaAnual: number;
   semanasExcedentes: number;
   anosIncremento: number;
-  semanasResiduo: number;
+  divisionExacta: number;
+  parteDecimal: number;
   reglaRedondeo: string;
   incrementoAnualTotal: number;
   sumaBase: number;
