@@ -1,17 +1,15 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CalculationStep } from '../../models/pension.model';
+import { CurrencyMxnPipe } from '../../pipes/currency-mxn.pipe';
 
 @Component({
   selector: 'app-calculation-breakdown',
   standalone: true,
-  imports: [],
+  imports: [CurrencyMxnPipe],
   templateUrl: './calculation-breakdown.html',
   styleUrl: './calculation-breakdown.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalculationBreakdownComponent {
   steps = input.required<CalculationStep[]>();
-
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(value);
-  }
 }

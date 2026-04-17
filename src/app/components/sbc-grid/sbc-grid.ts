@@ -1,14 +1,16 @@
-import { Component, input, output, signal, computed } from '@angular/core';
+import { Component, input, output, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SbcEntry, Corte250Info } from '../../models/pension.model';
 import { PensionCalculatorService } from '../../services/pension-calculator.service';
+import { CurrencyMxnPipe } from '../../pipes/currency-mxn.pipe';
 
 @Component({
   selector: 'app-sbc-grid',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CurrencyMxnPipe],
   templateUrl: './sbc-grid.html',
   styleUrl: './sbc-grid.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SbcGridComponent {
   entries = input.required<SbcEntry[]>();
@@ -19,7 +21,7 @@ export class SbcGridComponent {
   fechaFinalChange = output<Date | null>();
 
   private nextId = signal(10);
-  private calculator = new PensionCalculatorService();
+  private calculator = inject(PensionCalculatorService);
 
   displayEntries = computed(() => {
     const base = this.entries();
@@ -60,36 +62,31 @@ export class SbcGridComponent {
   );
 
   promedioPonderado = computed(() => {
-    let totalProducto = 0;
-    let totalDias = 0;
-    for (const entry of this.effectiveEntries()) {
-      const dias = entry.efectivo !== false ? (entry.diasEfectivos ?? entry.dias) : 0;
-      if (entry.sbc > 0 && dias > 0) {
-        totalProducto += entry.sbc * dias;
-        totalDias += dias;
-      }
-    }
-    return totalDias > 0 ? totalProducto / totalDias : 0;
+    const { promedio } = this.calculator.calcularSalarioPromedioFromEffective(this.effectiveEntries());
+    return promedio;
   });
 
-  onFechaFinalChange(value: string): void {
-    const date = value ? new Date(value + 'T00:00:00') : null;
+  onFechaFinalChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    const date = PensionCalculatorService.parseDateInput(value);
     this.fechaFinalChange.emit(date);
     this.recalculateDates(date);
   }
 
-  onSbcChange(index: number, value: string): void {
+  onSbcChange(index: number, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
     const numValue = parseFloat(value) || 0;
     const updated = [...this.entries()];
     updated[index] = { ...updated[index], sbc: numValue };
     this.entriesChange.emit(updated);
   }
 
-  onFechaInicioChange(index: number, value: string): void {
-    const date = value ? new Date(value + 'T00:00:00') : null;
+  onFechaInicioChange(index: number, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    const date = PensionCalculatorService.parseDateInput(value);
     const updated = [...this.entries()];
     updated[index] = { ...updated[index], fechaInicio: date };
-    this.recalculateDatesWithEntries(updated);
+    this.recalculateDatesWithEntries(updated, date ?? undefined);
   }
 
   addRow(): void {
@@ -106,13 +103,14 @@ export class SbcGridComponent {
   }
 
   removeRow(index: number): void {
+    if (!confirm('¿Eliminar este período?')) return;
     const updated = [...this.entries()];
     updated.splice(index, 1);
     this.entriesChange.emit(updated);
   }
 
   private recalculateDates(fechaFinal: Date | null): void {
-    this.recalculateDatesWithEntries([...this.entries()], fechaFinal);
+    this.recalculateDatesWithEntries([...this.entries()], fechaFinal ?? undefined);
   }
 
   private recalculateDatesWithEntries(entries: SbcEntry[], fechaFinal?: Date | null): void {
@@ -149,13 +147,7 @@ export class SbcGridComponent {
   }
 
   formatDate(date: Date | null): string {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toISOString().substring(0, 10);
-  }
-
-  formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(value);
+    return PensionCalculatorService.formatDateISO(date);
   }
 
   isEntryExcluded(entry: SbcEntry): boolean {

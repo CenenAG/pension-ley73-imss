@@ -5,7 +5,7 @@
     <div class="result-main">
       <div class="result-amount">
         <span class="result-label">Pensión Mensual</span>
-        <span class="result-value">{{ formatCurrency(res.pensionMensual) }}</span>
+        <span class="result-value">{{ res.pensionMensual | currencyMXN }}</span>
         <span class="result-sub">MXN mensuales brutos</span>
       </div>
     </div>
@@ -13,16 +13,16 @@
     <div class="result-details">
       <div class="detail-item">
         <span class="detail-label">Pensión Anual</span>
-        <span class="detail-value">{{ formatCurrency(res.pensionAnual) }}</span>
+        <span class="detail-value">{{ res.pensionAnual | currencyMXN }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Aguinaldo Estimado</span>
-        <span class="detail-value">{{ formatCurrency(res.aguinaldo) }}</span>
+        <span class="detail-value">{{ res.aguinaldo | currencyMXN }}</span>
       </div>
       <div class="detail-divider"></div>
       <div class="detail-item">
         <span class="detail-label">SPD utilizado</span>
-        <span class="detail-value">{{ formatCurrency(res.salarioPromedioDiario) }}</span>
+        <span class="detail-value">{{ res.salarioPromedioDiario | currencyMXN }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Factor de relación</span>

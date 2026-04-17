@@ -3,14 +3,14 @@
 
   <div class="form-section">
     <div class="section-label">Parámetros Generales</div>
-    <div class="form-row">
+    <div class="form-grid">
       <div class="form-group">
         <label for="smg">Salario Mínimo General (Diario)</label>
         <input
           id="smg"
           type="number"
           [value]="salarioMinimoGeneral()"
-          (input)="onSmgChange($any($event).target.value)"
+          (input)="onSmgChange($event)"
           step="0.01"
           min="0"
         />
@@ -19,16 +19,17 @@
 
       <div class="form-group">
         <label for="edad">Edad de Retiro</label>
-        <select id="edad" [value]="edadRetiro()" (change)="onEdadChange($any($event).target.value)">
+        <select id="edad" [value]="edadRetiro()" (change)="onEdadChange($event)">
           @for (opt of edadOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
           }
         </select>
+        <span class="hint">&nbsp;</span>
       </div>
 
       <div class="form-group">
         <label for="estadoCivil">Estado Civil</label>
-        <select id="estadoCivil" [value]="estadoCivil()" (change)="onEstadoCivilChange($any($event).target.value)">
+        <select id="estadoCivil" [value]="estadoCivil()" (change)="onEstadoCivilChange($event)">
           @for (opt of estadoCivilOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
           }
@@ -37,15 +38,15 @@
       </div>
 
       <div class="form-group">
-        <label for="hijos">Hijos menores de 16 (o hasta 25 si estudian)</label>
+        <label for="hijos">Hijos (menores de 16)</label>
         <input
           id="hijos"
           type="number"
           [value]="hijosCount()"
-          (input)="onHijosChange($any($event).target.value)"
+          (input)="onHijosChange($event)"
           min="0"
         />
-        <span class="hint">10% por cada hijo</span>
+        <span class="hint">10% por cada hijo (&nbsp;hasta 25 si estudia)</span>
       </div>
 
       <div class="form-group">
@@ -54,7 +55,7 @@
           id="padres"
           type="number"
           [value]="padresCount()"
-          (input)="onPadresChange($any($event).target.value)"
+          (input)="onPadresChange($event)"
           min="0"
         />
         <span class="hint">10% por cada padre/madre</span>
@@ -64,14 +65,14 @@
 
   <div class="form-section">
     <div class="section-label">Semanas Cotizadas</div>
-    <div class="form-row semanas-row">
+    <div class="form-grid semanas-grid">
       <div class="form-group">
         <label for="fechaReferencia">Fecha de Referencia (Constancia)</label>
         <input
           id="fechaReferencia"
           type="date"
           [value]="formatDate(fechaReferencia())"
-          (change)="onFechaReferenciaChange($any($event).target.value)"
+          (change)="onFechaReferenciaChange($event)"
         />
         <span class="hint">Fecha de la Constancia de Semanas Cotizadas</span>
       </div>
@@ -82,7 +83,7 @@
           id="semanasRef"
           type="number"
           [value]="semanasReferencia()"
-          (input)="onSemanasReferenciaChange($any($event).target.value)"
+          (input)="onSemanasReferenciaChange($event)"
           min="0"
         />
         <span class="hint">Semanas que indica la constancia</span>
@@ -108,7 +109,7 @@
           disabled
           class="input-total"
         />
-        <span class="hint">Constancia + Adicionales (IMSS: sobrante &gt;3 días = +1 semana)</span>
+        <span class="hint">Constancia + Adicionales (IMSS: &gt;3 días = +1 sem.)</span>
       </div>
     </div>
   </div>

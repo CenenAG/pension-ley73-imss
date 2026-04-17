@@ -118,3 +118,20 @@ export const SMG_DEFAULT = 315.04;
 export const FACTOR_FOX = 1.11;
 export const MIN_SEMANAS = 500;
 export const DIAS_PROMEDIO = 1750;
+
+export const DEFAULT_CONFIG = {
+  fechaFinal: new Date(Date.UTC(2026, 8, 30)),
+  fechaReferencia: new Date(Date.UTC(2023, 11, 31)),
+  semanasReferencia: 1352,
+  edadRetiro: 60,
+  estadoCivil: 'casado' as EstadoCivil,
+  hijosCount: 1,
+  padresCount: 0,
+  salarioMinimoGeneral: SMG_DEFAULT,
+  sbcEntries: [
+    { id: 1, sbc: 2828.50, fechaInicio: new Date(Date.UTC(2025, 5, 1)), fechaFin: null as Date | null, dias: 0 },
+    { id: 2, sbc: 2714.25, fechaInicio: new Date(Date.UTC(2024, 1, 1)), fechaFin: null as Date | null, dias: 0 },
+    { id: 3, sbc: 2405.50, fechaInicio: new Date(Date.UTC(2022, 1, 1)), fechaFin: null as Date | null, dias: 0 },
+    { id: 4, sbc: 2240.50, fechaInicio: new Date(Date.UTC(2021, 11, 1)), fechaFin: null as Date | null, dias: 0 },
+  ] as SbcEntry[],
+};

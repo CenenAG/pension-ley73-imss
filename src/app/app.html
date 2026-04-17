@@ -42,7 +42,13 @@
     </section>
 
     <div class="calculate-bar">
-      <button type="button" class="btn-calculate" (click)="calcular()">
+      <button
+        type="button"
+        class="btn-calculate"
+        [class.btn-disabled]="!canCalculate()"
+        [disabled]="!canCalculate()"
+        (click)="calcular()"
+      >
         Calcular Pensión
       </button>
     </div>
@@ -54,7 +60,7 @@
     }
 
     @if (pensionResult(); as result) {
-      <section class="section">
+      <section class="section" id="result">
         <app-pension-result [result]="result" />
       </section>
 

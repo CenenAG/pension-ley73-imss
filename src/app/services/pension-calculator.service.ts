@@ -17,6 +17,28 @@ import {
 @Injectable({ providedIn: 'root' })
 export class PensionCalculatorService {
 
+  static parseDateInput(value: string | null | undefined): Date | null {
+    if (!value) return null;
+    const [y, m, d] = value.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(Date.UTC(y, m - 1, d));
+  }
+
+  static formatDateISO(date: Date | null): string {
+    if (!date) return '';
+    return date.toISOString().substring(0, 10);
+  }
+
+  private static readonly MXN_FORMATTER = new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2,
+  });
+
+  static formatCurrency(value: number): string {
+    return PensionCalculatorService.MXN_FORMATTER.format(value);
+  }
+
   calcularFechasFinAuto(entries: SbcEntry[], fechaFinal: Date | null): SbcEntry[] {
     if (!fechaFinal || entries.length === 0) return entries;
 

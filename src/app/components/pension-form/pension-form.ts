@@ -1,6 +1,7 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EstadoCivil, SMG_DEFAULT } from '../../models/pension.model';
+import { PensionCalculatorService } from '../../services/pension-calculator.service';
 
 @Component({
   selector: 'app-pension-form',
@@ -8,6 +9,7 @@ import { EstadoCivil, SMG_DEFAULT } from '../../models/pension.model';
   imports: [FormsModule],
   templateUrl: './pension-form.html',
   styleUrl: './pension-form.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PensionFormComponent {
   salarioMinimoGeneral = input(SMG_DEFAULT);
@@ -43,44 +45,49 @@ export class PensionFormComponent {
     { value: 65, label: '65 años — 100% (Vejez)' },
   ];
 
-  onSmgChange(value: string): void {
+  onSmgChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
     const num = parseFloat(value);
     if (!isNaN(num) && num > 0) {
       this.salarioMinimoGeneralChange.emit(num);
     }
   }
 
-  onFechaReferenciaChange(value: string): void {
-    const date = value ? new Date(value + 'T00:00:00') : null;
-    this.fechaReferenciaChange.emit(date);
+  onFechaReferenciaChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.fechaReferenciaChange.emit(PensionCalculatorService.parseDateInput(value));
   }
 
-  onSemanasReferenciaChange(value: string): void {
+  onSemanasReferenciaChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
     const num = parseInt(value, 10);
     if (!isNaN(num) && num >= 0) {
       this.semanasReferenciaChange.emit(num);
     }
   }
 
-  onEdadChange(value: string): void {
+  onEdadChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
     const num = parseInt(value, 10);
     if (!isNaN(num)) {
       this.edadRetiroChange.emit(num);
     }
   }
 
-  onEstadoCivilChange(value: string): void {
-    this.estadoCivilChange.emit(value as EstadoCivil);
+  onEstadoCivilChange(event: Event): void {
+    this.estadoCivilChange.emit((event.target as HTMLSelectElement).value as EstadoCivil);
   }
 
-  onHijosChange(value: string): void {
+  onHijosChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
     const num = parseInt(value, 10);
     if (!isNaN(num) && num >= 0) {
       this.hijosCountChange.emit(num);
     }
   }
 
-  onPadresChange(value: string): void {
+  onPadresChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
     const num = parseInt(value, 10);
     if (!isNaN(num) && num >= 0) {
       this.padresCountChange.emit(num);
@@ -88,7 +95,6 @@ export class PensionFormComponent {
   }
 
   formatDate(date: Date | null): string {
-    if (!date) return '';
-    return new Date(date).toISOString().substring(0, 10);
+    return PensionCalculatorService.formatDateISO(date);
   }
 }
