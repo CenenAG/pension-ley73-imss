@@ -55,15 +55,31 @@ La tabla completa con 22 rangos de salario es consultable dentro de la aplicaci�
 
 ---
 
-## Captura de Pantalla
+## Capturas de Pantalla
 
-La interfaz presenta tres secciones principales:
+### Salario Base de Cotización
 
-1. **Grid de SBC**: Tabla editable con salarios base de cotización, fechas de inicio, y fechas fin calculadas automáticamente. Indica visualmente qué períodos están dentro, parcialmente dentro, o fuera de los 1,750 días.
+Tabla editable con salarios base de cotización, fechas de inicio, y fechas fin calculadas automáticamente. Indica visualmente qué períodos están dentro, parcialmente dentro, o fuera de los 1,750 días.
 
-2. **Datos del Cálculo**: Parámetros organizados en dos secciones — Parámetros Generales (SMG, edad, estado civil, dependientes) y Semanas Cotizadas (fecha de constancia, semanas en constancia, semanas adicionales automáticas, total).
+![Salario Base de Cotización](docs/screenshots/sbc-grid.png)
 
-3. **Resultado y Desglose**: Monto mensual destacado, detalle de cada paso del cálculo con fórmulas y valores intermedios, y tabla Art. 167.
+### Datos de Cálculo
+
+Parámetros organizados en dos secciones — Parámetros Generales (SMG, edad, estado civil, dependientes) y Semanas Cotizadas (fecha de constancia, semanas en constancia, semanas adicionales automáticas, total).
+
+![Datos de Cálculo](docs/screenshots/datos-calculo.png)
+
+### Desglose del Cálculo (1/2)
+
+Monto mensual destacado y detalle de los primeros pasos del cálculo con fórmulas y valores intermedios.
+
+![Desglose 1](docs/screenshots/desglose-1.png)
+
+### Desglose del Cálculo (2/2)
+
+Continuación del desglose con los pasos restantes y la tabla del Art. 167 con el renglón activo resaltado.
+
+![Desglose 2](docs/screenshots/desglose-2.png)
 
 ---
 
