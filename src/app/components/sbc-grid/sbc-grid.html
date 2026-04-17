@@ -35,10 +35,12 @@
       </thead>
       <tbody>
         @for (entry of displayEntries(); track entry.id; let i = $index) {
-          <tr class="{{ isEntryExcluded(entry) ? 'row-excluded' : (isEntryPartial(entry) ? 'row-partial' : '') }}">
+          <tr class="{{ isEntryExcluded(entry) ? 'row-excluded' : (isOverlapping(entry) ? 'row-overlap' : (isEntryPartial(entry) ? 'row-partial' : '')) }}">
             <td class="col-status">
               @if (isEntryExcluded(entry)) {
                 <span class="status-dot excluded" title="Fuera del periodo de 1,750 días">●</span>
+              } @else if (isOverlapping(entry)) {
+                <span class="status-dot overlap" title="Este período se traslapa con otro">⚠</span>
               } @else if (isEntryPartial(entry)) {
                 <span class="status-dot partial" title="Parcialmente dentro del periodo de 1,750 días">◐</span>
               } @else if (entry.sbc > 0 && entry.fechaInicio) {
@@ -160,10 +162,17 @@
     </div>
   }
 
+  @if (overlappingIds().size > 0) {
+    <div class="overlap-warning">
+      ⚠ Hay períodos con fechas traslapadas. Corrija las fechas para que no exista traslape entre Fecha Inicio y Fecha Fin de distintos renglones.
+    </div>
+  }
+
   <div class="legend">
     <span class="legend-item"><span class="status-dot included">●</span> Dentro de 1,750 días</span>
     <span class="legend-item"><span class="status-dot partial">◐</span> Parcialmente incluido</span>
     <span class="legend-item"><span class="status-dot excluded">●</span> Fuera de 1,750 días</span>
-    <span class="legend-item hint">Fecha Fin se calcula automáticamente. Semanas IMSS: días ÷ 7, si sobran >3 días → +1 semana.</span>
+    <span class="legend-item"><span class="status-dot overlap">⚠</span> Traslape</span>
+    <span class="legend-item hint">Fecha Fin: se calcula automáticamente o se edita manualmente. Semanas IMSS: días ÷ 7, sobrante >3 = +1 semana.</span>
   </div>
 </div>

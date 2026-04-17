@@ -75,12 +75,13 @@ export class App {
 
   canCalculate = computed(() => {
     const effective = this.effectiveEntries();
-    return effective.length > 0 && effective.some(e => e.sbc > 0);
+    return effective.length > 0 && effective.some(e => e.sbc > 0) && !this.hasOverlaps();
   });
 
   showTable = signal(false);
   pensionResult = signal<PensionResult | null>(null);
   hasCalculated = signal(false);
+  hasOverlaps = signal(false);
 
   art167Table = ART167_TABLE;
 
@@ -144,6 +145,10 @@ export class App {
 
   onPadresChange(value: number): void {
     this.padresCount.set(value);
+  }
+
+  onHasOverlaps(value: boolean): void {
+    this.hasOverlaps.set(value);
   }
 
   toggleTable(): void {

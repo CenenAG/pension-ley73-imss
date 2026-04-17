@@ -131,7 +131,20 @@ tbody td {
 }
 
 .row-partial {
-  background: var(--warning-bg);
+  background: var(--color-partial-bg);
+}
+
+.row-overlap {
+  background: #fef2f2;
+}
+
+.row-overlap td {
+  color: var(--color-danger);
+}
+
+.row-overlap input,
+.row-overlap .fecha-fin-input {
+  border-color: var(--color-danger) !important;
 }
 
 input[type="number"],
@@ -213,9 +226,22 @@ input[type="number"] {
   font-size: 0.7rem;
 }
 
-.status-dot.included { color: var(--success); }
-.status-dot.partial { color: var(--warning); }
-.status-dot.excluded { color: var(--danger); }
+.status-dot.included { color: var(--color-success); }
+.status-dot.partial { color: var(--color-warning); }
+.status-dot.excluded { color: var(--color-danger); }
+.status-dot.overlap { color: var(--color-danger); font-size: 0.85rem; }
+
+.overlap-warning {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: #991b1b;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
 
 .excluded-text {
   color: var(--text-muted);

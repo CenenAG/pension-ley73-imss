@@ -19,6 +19,7 @@ export class SbcGridComponent {
   effectiveEntries = input.required<SbcEntry[]>();
   entriesChange = output<SbcEntry[]>();
   fechaFinalChange = output<Date | null>();
+  hasOverlaps = output<boolean>();
 
   private nextId = signal(10);
   private calculator = inject(PensionCalculatorService);
@@ -66,6 +67,28 @@ export class SbcGridComponent {
     return promedio;
   });
 
+  overlappingIds = computed(() => {
+    const entries = this.entries();
+    const ids = new Set<number>();
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const a = entries[i];
+        const b = entries[j];
+        if (a.fechaInicio && a.fechaFin && b.fechaInicio && b.fechaFin) {
+          const aStart = a.fechaInicio.getTime();
+          const aEnd = a.fechaFin.getTime();
+          const bStart = b.fechaInicio.getTime();
+          const bEnd = b.fechaFin.getTime();
+          if (aStart <= bEnd && bStart <= aEnd) {
+            ids.add(a.id);
+            ids.add(b.id);
+          }
+        }
+      }
+    }
+    return ids;
+  });
+
   onFechaFinalChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     const date = PensionCalculatorService.parseDateInput(value);
@@ -78,6 +101,7 @@ export class SbcGridComponent {
     const numValue = parseFloat(value) || 0;
     const updated = [...this.entries()];
     updated[index] = { ...updated[index], sbc: numValue };
+    this.emitOverlapState(updated);
     this.entriesChange.emit(updated);
   }
 
@@ -99,7 +123,26 @@ export class SbcGridComponent {
       fechaFinManual: true,
       dias: this.calculator.calcularDiasEntreFechas(updated[index].fechaInicio, date),
     };
+    this.emitOverlapState(updated);
     this.entriesChange.emit(updated);
+  }
+
+  private emitOverlapState(entries: SbcEntry[]): void {
+    let hasOverlap = false;
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const a = entries[i];
+        const b = entries[j];
+        if (a.fechaInicio && a.fechaFin && b.fechaInicio && b.fechaFin) {
+          if (a.fechaInicio.getTime() <= b.fechaFin.getTime() && b.fechaInicio.getTime() <= a.fechaFin.getTime()) {
+            hasOverlap = true;
+            break;
+          }
+        }
+      }
+      if (hasOverlap) break;
+    }
+    this.hasOverlaps.emit(hasOverlap);
   }
 
   addRow(): void {
@@ -112,6 +155,7 @@ export class SbcGridComponent {
       dias: 0,
     });
     this.nextId.update(v => v + 1);
+    this.emitOverlapState(updated);
     this.entriesChange.emit(updated);
   }
 
@@ -119,6 +163,7 @@ export class SbcGridComponent {
     if (!confirm('¿Eliminar este período?')) return;
     const updated = [...this.entries()];
     updated.splice(index, 1);
+    this.emitOverlapState(updated);
     this.entriesChange.emit(updated);
   }
 
@@ -130,6 +175,7 @@ export class SbcGridComponent {
     const ff = fechaFinal ?? this.fechaFinal();
     if (!ff) {
       this.entriesChange.emit(entries.map(e => ({ ...e, fechaFinManual: undefined })));
+      this.emitOverlapState(entries);
       return;
     }
 
@@ -156,6 +202,7 @@ export class SbcGridComponent {
       };
     }
 
+    this.emitOverlapState(sorted);
     this.entriesChange.emit(sorted);
   }
 
@@ -169,6 +216,10 @@ export class SbcGridComponent {
 
   isEntryPartial(entry: SbcEntry): boolean {
     return entry.efectivo !== false && entry.diasEfectivos != null && entry.diasEfectivos !== undefined && entry.diasEfectivos < (entry.dias || 0);
+  }
+
+  isOverlapping(entry: SbcEntry): boolean {
+    return this.overlappingIds().has(entry.id);
   }
 
   getDiasEfectivos(entry: SbcEntry): number | null {
