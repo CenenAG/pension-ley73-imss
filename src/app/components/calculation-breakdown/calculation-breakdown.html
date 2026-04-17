@@ -1,0 +1,25 @@
+<div class="breakdown-container">
+  <h3>Desglose del Cálculo — Paso a Paso</h3>
+  
+  @for (step of steps(); track step.paso) {
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-number">Paso {{ step.paso }}</span>
+        <span class="step-title">{{ step.titulo }}</span>
+      </div>
+      <p class="step-desc">{{ step.descripcion }}</p>
+      <div class="step-values">
+        @for (v of step.valores; track v.label) {
+          <div class="value-row">
+            <span class="value-label">{{ v.label }}</span>
+            <span class="value-data">{{ v.value }}</span>
+          </div>
+        }
+      </div>
+      <div class="step-result">
+        <span class="result-label">{{ step.resultadoLabel }}</span>
+        <span class="result-value">{{ formatCurrency(step.resultado) }}</span>
+      </div>
+    </div>
+  }
+</div>

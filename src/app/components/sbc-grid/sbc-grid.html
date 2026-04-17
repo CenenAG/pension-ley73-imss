@@ -1,0 +1,163 @@
+<div class="sbc-grid-container">
+  <div class="grid-header">
+    <h3>Salario Base de Cotización — Últimos 1,750 Días Cotizados</h3>
+  </div>
+
+  <div class="fecha-final-row">
+    <label for="fechaFinal">Fecha Final del Periodo de Cotización</label>
+    <input
+      id="fechaFinal"
+      type="date"
+      [value]="fechaFinal() ? formatDate(fechaFinal()!) : ''"
+      (change)="onFechaFinalChange($any($event).target.value)"
+    />
+    <span class="hint">último día cotizado o fecha de baja. Define el final de los últimos 1,750 días.</span>
+  </div>
+
+  <div class="grid-actions">
+    <button type="button" class="btn-add" (click)="addRow()">+ Agregar período</button>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-status"></th>
+          <th class="col-sbc">SBC (Diario)</th>
+          <th class="col-fecha">Fecha Inicio</th>
+          <th class="col-fecha">Fecha Fin</th>
+          <th class="col-num">Días</th>
+          @if (corteInfo().excede1750) {
+            <th class="col-num">Días Efectivos</th>
+          }
+          <th class="col-action"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (entry of displayEntries(); track entry.id; let i = $index) {
+          <tr class="{{ isEntryExcluded(entry) ? 'row-excluded' : (isEntryPartial(entry) ? 'row-partial' : '') }}">
+            <td class="col-status">
+              @if (isEntryExcluded(entry)) {
+                <span class="status-dot excluded" title="Fuera del periodo de 1,750 días">●</span>
+              } @else if (isEntryPartial(entry)) {
+                <span class="status-dot partial" title="Parcialmente dentro del periodo de 1,750 días">◐</span>
+              } @else if (entry.sbc > 0 && entry.fechaInicio) {
+                <span class="status-dot included" title="Dentro del periodo de 1,750 días">●</span>
+              }
+            </td>
+            <td class="col-sbc">
+              <input
+                type="number"
+                [value]="entry.sbc"
+                (input)="onSbcChange(i, $any($event).target.value)"
+                placeholder="$0.00"
+                step="0.01"
+                min="0"
+              />
+            </td>
+            <td class="col-fecha">
+              <input
+                type="date"
+                [value]="formatDate(entry.fechaInicio)"
+                (change)="onFechaInicioChange(i, $any($event).target.value)"
+              />
+            </td>
+            <td class="col-fecha">
+              <span class="auto-date">{{ formatDate(entry.fechaFin) || '—' }}</span>
+            </td>
+            <td class="col-num">{{ entry.dias || '—' }}</td>
+            @if (corteInfo().excede1750) {
+              <td class="col-num">
+                @if (isEntryExcluded(entry)) {
+                  <span class="excluded-text">—</span>
+                } @else {
+                  {{ getDiasEfectivos(entry) }}
+                }
+              </td>
+            }
+            <td class="col-action">
+              @if (entries().length > 1) {
+                <button type="button" class="btn-remove" (click)="removeRow(i)">✕</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr class="totals">
+          <td></td>
+          <td><strong>Total registrado</strong></td>
+          <td></td>
+          <td></td>
+          <td class="col-num"><strong>{{ totalDias() }}</strong></td>
+          @if (corteInfo().excede1750) {
+            <td class="col-num"><strong>{{ effectiveTotalDias() }}</strong></td>
+          }
+          <td></td>
+        </tr>
+        <tr class="totals-semanas">
+          <td></td>
+          <td>≈ {{ totalSemanas() }} semanas (regla IMSS)</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          @if (corteInfo().excede1750) {
+            <td></td>
+          }
+          <td></td>
+        </tr>
+        @if (corteInfo().excede1750) {
+          <tr class="effective-total">
+            <td></td>
+            <td><strong>Considerado (1,750 días)</strong></td>
+            <td></td>
+            <td></td>
+            <td class="col-num"><strong>{{ effectiveTotalDias() }}</strong></td>
+            <td class="col-num"><strong>{{ effectiveTotalSemanas() }} sem.</strong></td>
+            <td></td>
+          </tr>
+        }
+        @if (promedioPonderado() > 0) {
+          <tr class="promedio">
+            <td></td>
+            <td colspan="3"><strong>Promedio ponderado SBC {{ corteInfo().excede1750 ? '(últimos 1,750 días)' : '' }}</strong></td>
+            <td colspan="3"><strong>{{ formatCurrency(promedioPonderado()) }}</strong></td>
+          </tr>
+        }
+      </tfoot>
+    </table>
+  </div>
+
+  @if (corteInfo().fechaInicioConsiderada && corteInfo().fechaFinConsiderada) {
+    <div class="periodo-info">
+      <span class="periodo-label">Periodo considerado:</span>
+      {{ corteInfo().fechaInicioConsiderada!.toLocaleDateString('es-MX') }} al {{ corteInfo().fechaFinConsiderada!.toLocaleDateString('es-MX') }}
+      @if (corteInfo().excede1750) {
+        — <strong>{{ effectiveTotalDias() }} días efectivos</strong> de 1,750 requeridos
+      } @else {
+        — <strong>{{ totalDias() }} días</strong> de 1,750 requeridos
+      }
+    </div>
+  }
+
+  @if (corteInfo().excede1750) {
+    <div class="corte-info">
+      {{ corteInfo().mensaje }}
+    </div>
+  } @else if (totalDias() > 0 && totalDias() < 1750) {
+    <div class="warning">
+      Faltan {{ 1750 - totalDias() }} días para completar los 1,750 requeridos (250 semanas).
+    </div>
+  } @else if (totalDias() >= 1750) {
+    <div class="success">
+      Periodo completo: {{ totalDias() }} días (≈ {{ totalSemanas() }} semanas con redondeo IMSS).
+    </div>
+  }
+
+  <div class="legend">
+    <span class="legend-item"><span class="status-dot included">●</span> Dentro de 1,750 días</span>
+    <span class="legend-item"><span class="status-dot partial">◐</span> Parcialmente incluido</span>
+    <span class="legend-item"><span class="status-dot excluded">●</span> Fuera de 1,750 días</span>
+    <span class="legend-item hint">Fecha Fin se calcula automáticamente. Semanas IMSS: días ÷ 7, si sobran >3 días → +1 semana.</span>
+  </div>
+</div>

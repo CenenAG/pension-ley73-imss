@@ -1,0 +1,109 @@
+<div class="app-container">
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <h1>Pensiones Ley 73 IMSS</h1>
+        <span class="subtitle">Calculadora profesional de pensión por vejez — Decreto Ley del Seguro Social 1973</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="section">
+      <app-sbc-grid
+        [entries]="computedEntries()"
+        [fechaFinal]="fechaFinal()"
+        [corteInfo]="corteInfo()"
+        [effectiveEntries]="effectiveEntries()"
+        (entriesChange)="onEntriesChange($event)"
+        (fechaFinalChange)="onFechaFinalChange($event)"
+      />
+    </section>
+
+    <section class="section">
+      <app-pension-form
+        [salarioMinimoGeneral]="salarioMinimoGeneral()"
+        [fechaReferencia]="fechaReferencia()"
+        [semanasReferencia]="semanasReferencia()"
+        [semanasAdicionales]="semanasAdicionales()"
+        [semanasCotizadas]="semanasCotizadas()"
+        [edadRetiro]="edadRetiro()"
+        [estadoCivil]="estadoCivil()"
+        [hijosCount]="hijosCount()"
+        [padresCount]="padresCount()"
+        (salarioMinimoGeneralChange)="onSmgChange($event)"
+        (fechaReferenciaChange)="onFechaReferenciaChange($event)"
+        (semanasReferenciaChange)="onSemanasReferenciaChange($event)"
+        (edadRetiroChange)="onEdadChange($event)"
+        (estadoCivilChange)="onEstadoCivilChange($event)"
+        (hijosCountChange)="onHijosChange($event)"
+        (padresCountChange)="onPadresChange($event)"
+      />
+    </section>
+
+    <div class="calculate-bar">
+      <button type="button" class="btn-calculate" (click)="calcular()">
+        Calcular Pensión
+      </button>
+    </div>
+
+    @if (!hasCalculated()) {
+      <div class="empty-state">
+        Configure los datos de SBC, semanas cotizadas y parámetros, luego presione <strong>Calcular Pensión</strong>.
+      </div>
+    }
+
+    @if (pensionResult(); as result) {
+      <section class="section">
+        <app-pension-result [result]="result" />
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h3>Desglose del Cálculo</h3>
+          <div class="section-actions">
+            <button type="button" class="btn-secondary" (click)="toggleTable()">
+              {{ showTable() ? 'Ocultar' : 'Ver' }} tabla Art. 167
+            </button>
+            <button type="button" class="btn-primary" (click)="generatePDF()">
+              Descargar PDF
+            </button>
+          </div>
+        </div>
+        <app-calculation-breakdown [steps]="result.steps" />
+      </section>
+
+      @if (showTable()) {
+        <section class="section">
+          <h3>Tabla del Artículo 167 — Ley del Seguro Social 1973</h3>
+          <div class="table-wrapper">
+            <table class="art167-table">
+              <thead>
+                <tr>
+                  <th>Desde (veces SMG)</th>
+                  <th>Hasta (veces SMG)</th>
+                  <th>% Cuantía Básica</th>
+                  <th>% Incremento Anual</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of art167Table; track row.desde) {
+                  <tr class="{{ isRowActive(row, result.factorRelacion) ? 'active-row' : '' }}">
+                    <td>{{ row.desde.toFixed(2) }}</td>
+                    <td>{{ formatHasta(row.hasta) }}</td>
+                    <td>{{ row.porcentajeCuantiaBasica.toFixed(2) }}%</td>
+                    <td>{{ row.porcentajeIncrementoAnual.toFixed(3) }}%</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+    }
+  </main>
+
+  <footer class="app-footer">
+    <p>Calculadora de Pensión Ley 73 IMSS — Uso profesional para contadores y fiscalistas. Los resultados son estimaciones y no constituyen una resolución del IMSS.</p>
+  </footer>
+</div>

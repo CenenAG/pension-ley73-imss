@@ -1,0 +1,115 @@
+<div class="pension-form-container">
+  <h3>Datos del Cálculo</h3>
+
+  <div class="form-section">
+    <div class="section-label">Parámetros Generales</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="smg">Salario Mínimo General (Diario)</label>
+        <input
+          id="smg"
+          type="number"
+          [value]="salarioMinimoGeneral()"
+          (input)="onSmgChange($any($event).target.value)"
+          step="0.01"
+          min="0"
+        />
+        <span class="hint">Vigente para el año del cálculo. 2026: $315.04</span>
+      </div>
+
+      <div class="form-group">
+        <label for="edad">Edad de Retiro</label>
+        <select id="edad" [value]="edadRetiro()" (change)="onEdadChange($any($event).target.value)">
+          @for (opt of edadOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="estadoCivil">Estado Civil</label>
+        <select id="estadoCivil" [value]="estadoCivil()" (change)="onEstadoCivilChange($any($event).target.value)">
+          @for (opt of estadoCivilOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+        <span class="hint">El 15% se aplica siempre</span>
+      </div>
+
+      <div class="form-group">
+        <label for="hijos">Hijos menores de 16 (o hasta 25 si estudian)</label>
+        <input
+          id="hijos"
+          type="number"
+          [value]="hijosCount()"
+          (input)="onHijosChange($any($event).target.value)"
+          min="0"
+        />
+        <span class="hint">10% por cada hijo</span>
+      </div>
+
+      <div class="form-group">
+        <label for="padres">Padres/Madres dependientes</label>
+        <input
+          id="padres"
+          type="number"
+          [value]="padresCount()"
+          (input)="onPadresChange($any($event).target.value)"
+          min="0"
+        />
+        <span class="hint">10% por cada padre/madre</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="section-label">Semanas Cotizadas</div>
+    <div class="form-row semanas-row">
+      <div class="form-group">
+        <label for="fechaReferencia">Fecha de Referencia (Constancia)</label>
+        <input
+          id="fechaReferencia"
+          type="date"
+          [value]="formatDate(fechaReferencia())"
+          (change)="onFechaReferenciaChange($any($event).target.value)"
+        />
+        <span class="hint">Fecha de la Constancia de Semanas Cotizadas</span>
+      </div>
+
+      <div class="form-group">
+        <label for="semanasRef">Semanas en la Constancia</label>
+        <input
+          id="semanasRef"
+          type="number"
+          [value]="semanasReferencia()"
+          (input)="onSemanasReferenciaChange($any($event).target.value)"
+          min="0"
+        />
+        <span class="hint">Semanas que indica la constancia</span>
+      </div>
+
+      <div class="form-group">
+        <label>Semanas adicionales</label>
+        <input
+          type="number"
+          [value]="semanasAdicionales()"
+          disabled
+          class="input-readonly"
+        />
+        <span class="hint">De la fecha constancia a la fecha final</span>
+      </div>
+
+      <div class="form-group total-semanas-group">
+        <label for="semanas">Total Semanas Cotizadas</label>
+        <input
+          id="semanas"
+          type="number"
+          [value]="semanasCotizadas()"
+          disabled
+          class="input-total"
+        />
+        <span class="hint">Constancia + Adicionales (IMSS: sobrante &gt;3 días = +1 semana)</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+@if (result(); as res) {
+  <div class="result-container">
+    <h3>Resultado de la Pensión</h3>
+    
+    <div class="result-main">
+      <div class="result-amount">
+        <span class="result-label">Pensión Mensual</span>
+        <span class="result-value">{{ formatCurrency(res.pensionMensual) }}</span>
+        <span class="result-sub">MXN mensuales brutos</span>
+      </div>
+    </div>
+
+    <div class="result-details">
+      <div class="detail-item">
+        <span class="detail-label">Pensión Anual</span>
+        <span class="detail-value">{{ formatCurrency(res.pensionAnual) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Aguinaldo Estimado</span>
+        <span class="detail-value">{{ formatCurrency(res.aguinaldo) }}</span>
+      </div>
+      <div class="detail-divider"></div>
+      <div class="detail-item">
+        <span class="detail-label">SPD utilizado</span>
+        <span class="detail-value">{{ formatCurrency(res.salarioPromedioDiario) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Factor de relación</span>
+        <span class="detail-value">{{ res.factorRelacion.toFixed(4) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Grupo tabla Art. 167</span>
+        <span class="detail-value">{{ res.grupoTabla }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Años de incremento</span>
+        <span class="detail-value">{{ res.anosIncremento }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Regla de redondeo</span>
+        <span class="detail-value wrap">{{ res.reglaRedondeo }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Factor de edad</span>
+        <span class="detail-value">{{ res.factorEdadLabel }}</span>
+      </div>
+    </div>
+  </div>
+}
