@@ -1,6 +1,6 @@
 <div class="sbc-grid-container">
   <div class="grid-header">
-    <h3>Salario Base de Cotización — Últimos 1,750 Días Cotizados</h3>
+    <h3>Salario Base de Cotización — Últimas 250 Semanas Cotizadas</h3>
   </div>
 
   <div class="fecha-final-row">
@@ -11,7 +11,7 @@
       [value]="fechaFinal() ? formatDate(fechaFinal()!) : ''"
       (change)="onFechaFinalChange($event)"
     />
-    <span class="hint">último día cotizado o fecha de baja. Define el final de los últimos 1,750 días.</span>
+    <span class="hint">último día cotizado o fecha de baja. Define el final de las últimas 250 semanas.</span>
   </div>
 
   <div class="grid-actions">
@@ -27,8 +27,9 @@
           <th class="col-fecha">Fecha Inicio</th>
           <th class="col-fecha">Fecha Fin</th>
           <th class="col-num">Días</th>
+          <th class="col-num">Semanas</th>
           @if (corteInfo().excede1750) {
-            <th class="col-num">Días Efectivos</th>
+            <th class="col-num">Semanas Efectivas</th>
           }
           <th class="col-action"></th>
         </tr>
@@ -38,13 +39,13 @@
           <tr class="{{ isEntryExcluded(entry) ? 'row-excluded' : (isOverlapping(entry) ? 'row-overlap' : (isEntryPartial(entry) ? 'row-partial' : '')) }}">
             <td class="col-status">
               @if (isEntryExcluded(entry)) {
-                <span class="status-dot excluded" title="Fuera del periodo de 1,750 días">●</span>
+                <span class="status-dot excluded" title="Fuera del periodo de 250 semanas">●</span>
               } @else if (isOverlapping(entry)) {
                 <span class="status-dot overlap" title="Este período se traslapa con otro">⚠</span>
               } @else if (isEntryPartial(entry)) {
-                <span class="status-dot partial" title="Parcialmente dentro del periodo de 1,750 días">◐</span>
+                <span class="status-dot partial" title="Parcialmente dentro del periodo de 250 semanas">◐</span>
               } @else if (entry.sbc > 0 && entry.fechaInicio) {
-                <span class="status-dot included" title="Dentro del periodo de 1,750 días">●</span>
+                <span class="status-dot included" title="Dentro del periodo de 250 semanas">●</span>
               }
             </td>
             <td class="col-sbc">
@@ -74,12 +75,13 @@
               />
             </td>
             <td class="col-num">{{ entry.dias || '—' }}</td>
+            <td class="col-num">{{ entry.dias ? entrySemanas(entry) : '—' }}</td>
             @if (corteInfo().excede1750) {
               <td class="col-num">
                 @if (isEntryExcluded(entry)) {
                   <span class="excluded-text">—</span>
                 } @else {
-                  {{ getDiasEfectivos(entry) }}
+                  {{ entrySemanasEfectivas(entry) ?? '—' }}
                 }
               </td>
             }
@@ -97,30 +99,20 @@
           <td><strong>Total registrado</strong></td>
           <td></td>
           <td></td>
-          <td class="col-num"><strong>{{ totalDias() }}</strong></td>
+          <td class="col-num">{{ totalDias() }}</td>
+          <td class="col-num"><strong>{{ totalSemanas() }}</strong></td>
           @if (corteInfo().excede1750) {
-            <td class="col-num"><strong>{{ effectiveTotalDias() }}</strong></td>
-          }
-          <td></td>
-        </tr>
-        <tr class="totals-semanas">
-          <td></td>
-          <td>≈ {{ totalSemanas() }} semanas (regla IMSS)</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          @if (corteInfo().excede1750) {
-            <td></td>
+            <td class="col-num"><strong>{{ effectiveTotalSemanas() }}</strong></td>
           }
           <td></td>
         </tr>
         @if (corteInfo().excede1750) {
           <tr class="effective-total">
             <td></td>
-            <td><strong>Considerado (1,750 días)</strong></td>
+            <td><strong>Considerado (250 semanas)</strong></td>
             <td></td>
             <td></td>
-            <td class="col-num"><strong>{{ effectiveTotalDias() }}</strong></td>
+            <td class="col-num">{{ effectiveTotalDias() }} días</td>
             <td class="col-num"><strong>{{ effectiveTotalSemanas() }} sem.</strong></td>
             <td></td>
           </tr>
@@ -128,7 +120,7 @@
         @if (promedioPonderado() > 0) {
           <tr class="promedio">
             <td></td>
-            <td colspan="3"><strong>Promedio ponderado SBC {{ corteInfo().excede1750 ? '(últimos 1,750 días)' : '' }}</strong></td>
+            <td colspan="4"><strong>Promedio ponderado SBC {{ corteInfo().excede1750 ? '(últimas 250 semanas)' : '' }}</strong></td>
             <td colspan="3"><strong>{{ promedioPonderado() | currencyMXN }}</strong></td>
           </tr>
         }
@@ -141,9 +133,9 @@
       <span class="periodo-label">Periodo considerado:</span>
       {{ corteInfo().fechaInicioConsiderada!.toLocaleDateString('es-MX') }} al {{ corteInfo().fechaFinConsiderada!.toLocaleDateString('es-MX') }}
       @if (corteInfo().excede1750) {
-        — <strong>{{ effectiveTotalDias() }} días efectivos</strong> de 1,750 requeridos
+        — <strong>{{ effectiveTotalSemanas() }} semanas efectivas</strong> de 250 requeridas
       } @else {
-        — <strong>{{ totalDias() }} días</strong> de 1,750 requeridos
+        — <strong>{{ totalSemanas() }} semanas</strong> de 250 requeridas
       }
     </div>
   }
@@ -154,11 +146,11 @@
     </div>
   } @else if (totalDias() > 0 && totalDias() < 1750) {
     <div class="warning">
-      Faltan {{ 1750 - totalDias() }} días para completar los 1,750 requeridos (250 semanas).
+      Faltan {{ 1750 - totalDias() }} días (≈ {{ 250 - totalSemanas() }} semanas) para completar las 250 semanas requeridas.
     </div>
   } @else if (totalDias() >= 1750) {
     <div class="success">
-      Periodo completo: {{ totalDias() }} días (≈ {{ totalSemanas() }} semanas con redondeo IMSS).
+      Periodo completo: {{ totalDias() }} días ≈ {{ totalSemanas() }} semanas (regla IMSS: días ÷ 7, sobrante >3 = +1 semana).
     </div>
   }
 
@@ -169,10 +161,10 @@
   }
 
   <div class="legend">
-    <span class="legend-item"><span class="status-dot included">●</span> Dentro de 1,750 días</span>
+    <span class="legend-item"><span class="status-dot included">●</span> Dentro de 250 semanas</span>
     <span class="legend-item"><span class="status-dot partial">◐</span> Parcialmente incluido</span>
-    <span class="legend-item"><span class="status-dot excluded">●</span> Fuera de 1,750 días</span>
+    <span class="legend-item"><span class="status-dot excluded">●</span> Fuera de 250 semanas</span>
     <span class="legend-item"><span class="status-dot overlap">⚠</span> Traslape</span>
-    <span class="legend-item hint">Fecha Fin: se calcula automáticamente o se edita manualmente. Semanas IMSS: días ÷ 7, sobrante >3 = +1 semana.</span>
+    <span class="legend-item hint">Semanas IMSS: días ÷ 7, sobrante >3 = +1 semana. Fecha Fin editable.</span>
   </div>
 </div>

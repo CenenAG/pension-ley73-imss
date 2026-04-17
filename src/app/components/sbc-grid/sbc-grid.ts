@@ -62,6 +62,16 @@ export class SbcGridComponent {
     this.calculator.diasASemanas(this.effectiveTotalDias())
   );
 
+  entrySemanas(entry: SbcEntry): number {
+    return this.calculator.diasASemanas(entry.dias || 0);
+  }
+
+  entrySemanasEfectivas(entry: SbcEntry): number | null {
+    if (entry.efectivo === false) return null;
+    const dias = entry.diasEfectivos ?? entry.dias;
+    return this.calculator.diasASemanas(dias || 0);
+  }
+
   promedioPonderado = computed(() => {
     const { promedio } = this.calculator.calcularSalarioPromedioFromEffective(this.effectiveEntries());
     return promedio;
