@@ -600,7 +600,16 @@ export class PensionCalculatorService {
         aguinaldo: result.aguinaldo,
         factorRelacion: result.factorRelacion,
         sbcPromedio: result.salarioPromedioDiario,
+        diffMesAnterior: null,
+        diffPorcentaje: null,
       });
+    }
+
+    for (let i = 1; i < resultados.length; i++) {
+      const prev = resultados[i - 1].pensionMensual;
+      const curr = resultados[i].pensionMensual;
+      resultados[i].diffMesAnterior = curr - prev;
+      resultados[i].diffPorcentaje = prev !== 0 ? ((curr - prev) / prev) * 100 : null;
     }
 
     return resultados;

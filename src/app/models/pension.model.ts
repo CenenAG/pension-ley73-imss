@@ -41,6 +41,8 @@ export interface ProyeccionMensual {
   aguinaldo: number;
   factorRelacion: number;
   sbcPromedio: number;
+  diffMesAnterior: number | null;
+  diffPorcentaje: number | null;
 }
 
 export type EstadoCivil = 'casado' | 'concubina' | 'soltero';

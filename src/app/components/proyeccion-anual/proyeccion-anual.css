@@ -26,6 +26,10 @@
   padding: 1rem;
 }
 
+.chart-diff-section {
+  background: #fafafa;
+}
+
 .chart-y-axis {
   display: flex;
   flex-direction: column;
@@ -38,6 +42,10 @@
   text-align: right;
 }
 
+.chart-diff-section .chart-y-axis {
+  justify-content: space-between;
+}
+
 .chart-bars {
   display: flex;
   align-items: flex-end;
@@ -48,6 +56,10 @@
   position: relative;
 }
 
+.chart-diff-bars {
+  height: 120px;
+}
+
 .bar-column {
   flex: 1;
   display: flex;
@@ -55,6 +67,10 @@
   align-items: center;
   height: 100%;
   min-width: 40px;
+}
+
+.bar-column-diff {
+  justify-content: flex-end;
 }
 
 .bar-wrapper {
@@ -94,6 +110,55 @@
 
 .bar:hover .bar-value {
   opacity: 1;
+}
+
+.diff-indicator {
+  font-size: 0.55rem;
+  font-weight: 600;
+  margin-top: 2px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.diff-indicator.diff-positive {
+  color: #16a34a;
+}
+
+.diff-indicator.diff-negative {
+  color: #dc2626;
+}
+
+.diff-bar-wrapper {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.diff-bar-wrapper .diff-spacer {
+  flex: 1;
+  min-height: 0;
+}
+
+.diff-bar {
+  width: 100%;
+  max-width: 40px;
+  min-height: 2px;
+  border-radius: 3px;
+  transition: height 0.3s ease;
+}
+
+.diff-bar-positive {
+  background: #16a34a;
+  border-radius: 3px 3px 0 0;
+}
+
+.diff-bar-negative {
+  background: #dc2626;
+  border-radius: 0 0 3px 3px;
 }
 
 .bar-label {
@@ -153,6 +218,16 @@
   color: var(--accent-hover);
 }
 
+.diff-positive {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.diff-negative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
   .chart-section {
     flex-direction: column;
@@ -177,6 +252,10 @@
 
   .bar-value {
     display: none;
+  }
+
+  .chart-diff-bars {
+    height: 80px;
   }
 
   .proyeccion-table {

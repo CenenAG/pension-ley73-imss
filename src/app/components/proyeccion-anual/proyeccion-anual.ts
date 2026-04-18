@@ -25,9 +25,42 @@ export class ProyeccionAnualComponent {
     return Math.min(...items.map((p) => p.pensionMensual));
   });
 
+  maxAbsDiff = computed(() => {
+    const items = this.proyeccion();
+    const diffs = items
+      .filter((p) => p.diffMesAnterior !== null)
+      .map((p) => Math.abs(p.diffMesAnterior!));
+    if (diffs.length === 0) return 1;
+    return Math.max(...diffs);
+  });
+
   barHeight(barValue: number): string {
     const max = this.maxPension();
     if (max === 0) return '0%';
     return `${(barValue / max) * 100}%`;
+  }
+
+  diffBarHeight(diff: number | null): string {
+    if (diff === null) return '0%';
+    const max = this.maxAbsDiff();
+    if (max === 0) return '50%';
+    return `${(Math.abs(diff) / max) * 100}%`;
+  }
+
+  formatDiff(diff: number | null): string {
+    if (diff === null) return '—';
+    const sign = diff >= 0 ? '+' : '';
+    return `${sign}${diff.toFixed(2)}`;
+  }
+
+  formatDiffPct(pct: number | null): string {
+    if (pct === null) return '—';
+    const sign = pct >= 0 ? '+' : '';
+    return `${sign}${pct.toFixed(2)}%`;
+  }
+
+  diffClass(diff: number | null): string {
+    if (diff === null) return '';
+    return diff >= 0 ? 'diff-positive' : 'diff-negative';
   }
 }

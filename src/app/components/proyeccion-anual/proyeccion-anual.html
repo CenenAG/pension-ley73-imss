@@ -19,6 +19,43 @@
               <span class="bar-value">{{ item.pensionMensual | currencyMXN }}</span>
             </div>
           </div>
+          @if (item.diffMesAnterior !== null) {
+            <div class="diff-indicator" [class]="diffClass(item.diffMesAnterior)">
+              {{ formatDiff(item.diffMesAnterior) }}
+            </div>
+          }
+          <span class="bar-label">{{ item.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="chart-section chart-diff-section">
+    <div class="chart-y-axis">
+      <span>+{{ maxAbsDiff() | currencyMXN }}</span>
+      <span>0</span>
+      <span>-{{ maxAbsDiff() | currencyMXN }}</span>
+    </div>
+    <div class="chart-bars chart-diff-bars">
+      @for (item of proyeccion(); track item.label) {
+        <div class="bar-column bar-column-diff">
+          @if (item.diffMesAnterior !== null) {
+            <div class="diff-bar-wrapper">
+              @if (item.diffMesAnterior! >= 0) {
+                <div class="diff-spacer"></div>
+                <div
+                  class="diff-bar diff-bar-positive"
+                  [style.height]="diffBarHeight(item.diffMesAnterior)"
+                ></div>
+              } @else {
+                <div
+                  class="diff-bar diff-bar-negative"
+                  [style.height]="diffBarHeight(item.diffMesAnterior)"
+                ></div>
+                <div class="diff-spacer"></div>
+              }
+            </div>
+          }
           <span class="bar-label">{{ item.label }}</span>
         </div>
       }
@@ -30,10 +67,12 @@
       <thead>
         <tr>
           <th>Fecha Final</th>
-          <th>Semanas Cotizadas</th>
-          <th>Factor Relación</th>
-          <th>SBC Promedio</th>
+          <th>Semanas Cot.</th>
+          <th>Factor Rel.</th>
+          <th>SBC Prom.</th>
           <th>Pensión Mensual</th>
+          <th>Diff vs Anterior</th>
+          <th>% Cambio</th>
           <th>Pensión Anual</th>
           <th>Aguinaldo</th>
         </tr>
@@ -46,6 +85,12 @@
             <td class="col-num">{{ item.factorRelacion.toFixed(4) }}</td>
             <td class="col-num">{{ item.sbcPromedio | currencyMXN }}</td>
             <td class="col-num col-highlight">{{ item.pensionMensual | currencyMXN }}</td>
+            <td class="col-num" [class]="diffClass(item.diffMesAnterior)">
+              {{ formatDiff(item.diffMesAnterior) }}
+            </td>
+            <td class="col-num" [class]="diffClass(item.diffPorcentaje)">
+              {{ formatDiffPct(item.diffPorcentaje) }}
+            </td>
             <td class="col-num">{{ item.pensionAnual | currencyMXN }}</td>
             <td class="col-num">{{ item.aguinaldo | currencyMXN }}</td>
           </tr>
