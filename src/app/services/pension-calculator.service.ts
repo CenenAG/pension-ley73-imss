@@ -9,6 +9,7 @@ import {
   SEMANAS_PROMEDIO,
   MS_PER_DAY,
   PensionResult,
+  ProyeccionMensual,
   CalculationStep,
   AsignacionFamiliar,
   EstadoCivil,
@@ -531,5 +532,77 @@ export class PensionCalculatorService {
       aguinaldo,
       steps,
     };
+  }
+
+  calcularProyeccionAnual(
+    rawEntries: SbcEntry[],
+    fechaFinalBase: Date,
+    fechaReferencia: Date | null,
+    semanasReferencia: number,
+    salarioMinimoGeneral: number,
+    edad: number,
+    estadoCivil: EstadoCivil,
+    hijosCount: number,
+    padresCount: number,
+  ): ProyeccionMensual[] {
+    const MESES = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
+    ];
+    const resultados: ProyeccionMensual[] = [];
+
+    for (let i = 0; i < 12; i++) {
+      const fechaFinal = new Date(
+        Date.UTC(fechaFinalBase.getFullYear(), fechaFinalBase.getMonth() + i + 1, 0),
+      );
+
+      const computedEntries = this.calcularFechasFinAuto(rawEntries, fechaFinal);
+      const corteInfo = this.calcularCorte250(computedEntries);
+      const effectiveEntries = this.calcularEffectiveEntries(computedEntries, corteInfo);
+
+      let semanasCotizadas = semanasReferencia;
+      if (fechaReferencia) {
+        const diasAdicionales = this.calcularDiasEntreFechas(fechaReferencia, fechaFinal) - 1;
+        if (diasAdicionales > 0) {
+          semanasCotizadas += this.diasASemanas(diasAdicionales);
+        }
+      }
+
+      const result = this.calcularPension(
+        effectiveEntries,
+        corteInfo,
+        salarioMinimoGeneral,
+        semanasCotizadas,
+        edad,
+        estadoCivil,
+        hijosCount,
+        padresCount,
+      );
+
+      const label = `${MESES[fechaFinal.getMonth()]} ${fechaFinal.getFullYear()}`;
+
+      resultados.push({
+        fechaFinal,
+        label,
+        semanasCotizadas,
+        pensionMensual: result.pensionMensual,
+        pensionAnual: result.pensionAnual,
+        aguinaldo: result.aguinaldo,
+        factorRelacion: result.factorRelacion,
+        sbcPromedio: result.salarioPromedioDiario,
+      });
+    }
+
+    return resultados;
   }
 }

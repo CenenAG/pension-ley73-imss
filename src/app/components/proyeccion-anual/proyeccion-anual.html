@@ -1,0 +1,56 @@
+<div class="proyeccion-container">
+  <div class="proyeccion-header">
+    <h3>Proyección Anual — Pensión Mensual por Mes</h3>
+    <p class="proyeccion-subtitle">
+      Variación de la pensión al cambiar la fecha final al último día de cada mes
+    </p>
+  </div>
+
+  <div class="chart-section">
+    <div class="chart-y-axis">
+      <span>{{ maxPension() | currencyMXN }}</span>
+      <span>{{ minPension() | currencyMXN }}</span>
+    </div>
+    <div class="chart-bars">
+      @for (item of proyeccion(); track item.label) {
+        <div class="bar-column">
+          <div class="bar-wrapper">
+            <div class="bar" [style.height]="barHeight(item.pensionMensual)">
+              <span class="bar-value">{{ item.pensionMensual | currencyMXN }}</span>
+            </div>
+          </div>
+          <span class="bar-label">{{ item.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="proyeccion-table">
+      <thead>
+        <tr>
+          <th>Fecha Final</th>
+          <th>Semanas Cotizadas</th>
+          <th>Factor Relación</th>
+          <th>SBC Promedio</th>
+          <th>Pensión Mensual</th>
+          <th>Pensión Anual</th>
+          <th>Aguinaldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of proyeccion(); track item.label) {
+          <tr>
+            <td class="col-date">{{ item.fechaFinal.toLocaleDateString('es-MX') }}</td>
+            <td class="col-num">{{ item.semanasCotizadas.toLocaleString() }}</td>
+            <td class="col-num">{{ item.factorRelacion.toFixed(4) }}</td>
+            <td class="col-num">{{ item.sbcPromedio | currencyMXN }}</td>
+            <td class="col-num col-highlight">{{ item.pensionMensual | currencyMXN }}</td>
+            <td class="col-num">{{ item.pensionAnual | currencyMXN }}</td>
+            <td class="col-num">{{ item.aguinaldo | currencyMXN }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

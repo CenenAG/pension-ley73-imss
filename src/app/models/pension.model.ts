@@ -32,6 +32,17 @@ export interface AsignacionFamiliar {
   porcentaje: number;
 }
 
+export interface ProyeccionMensual {
+  fechaFinal: Date;
+  label: string;
+  semanasCotizadas: number;
+  pensionMensual: number;
+  pensionAnual: number;
+  aguinaldo: number;
+  factorRelacion: number;
+  sbcPromedio: number;
+}
+
 export type EstadoCivil = 'casado' | 'concubina' | 'soltero';
 
 export interface CalculationStep {

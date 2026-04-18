@@ -72,6 +72,9 @@
         <div class="section-header">
           <h3>Desglose del Cálculo</h3>
           <div class="section-actions">
+            <button type="button" class="btn-secondary" (click)="toggleProyeccion()">
+              {{ showProyeccion() ? 'Ocultar' : 'Ver' }} Proyección Anual
+            </button>
             <button type="button" class="btn-secondary" (click)="toggleTable()">
               {{ showTable() ? 'Ocultar' : 'Ver' }} tabla Art. 167
             </button>
@@ -80,6 +83,12 @@
         </div>
         <app-calculation-breakdown [steps]="result.steps" />
       </section>
+
+      @if (showProyeccion() && proyeccionAnual()) {
+        <section class="section">
+          <app-proyeccion-anual [proyeccion]="proyeccionAnual()!" />
+        </section>
+      }
 
       @if (showTable()) {
         <section class="section">

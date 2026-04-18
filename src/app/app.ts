@@ -3,11 +3,13 @@ import { SbcGridComponent } from './components/sbc-grid/sbc-grid';
 import { PensionFormComponent } from './components/pension-form/pension-form';
 import { CalculationBreakdownComponent } from './components/calculation-breakdown/calculation-breakdown';
 import { PensionResultComponent } from './components/pension-result/pension-result';
+import { ProyeccionAnualComponent } from './components/proyeccion-anual/proyeccion-anual';
 import { PensionCalculatorService } from './services/pension-calculator.service';
 import { PdfGeneratorService } from './services/pdf-generator.service';
 import {
   SbcEntry,
   PensionResult,
+  ProyeccionMensual,
   EstadoCivil,
   Corte250Info,
   ART167_TABLE,
@@ -22,6 +24,7 @@ import {
     PensionFormComponent,
     CalculationBreakdownComponent,
     PensionResultComponent,
+    ProyeccionAnualComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -88,6 +91,8 @@ export class App {
   pensionResult = signal<PensionResult | null>(null);
   hasCalculated = signal(false);
   hasOverlaps = signal(false);
+  proyeccionAnual = signal<ProyeccionMensual[] | null>(null);
+  showProyeccion = signal(false);
 
   art167Table = ART167_TABLE;
 
@@ -159,6 +164,33 @@ export class App {
 
   toggleTable(): void {
     this.showTable.update((v) => !v);
+  }
+
+  toggleProyeccion(): void {
+    this.showProyeccion.update((v) => !v);
+    if (!this.showProyeccion() || this.proyeccionAnual()) return;
+    this.calcularProyeccionAnual();
+  }
+
+  calcularProyeccionAnual(): void {
+    const ff = this.fechaFinal();
+    const fr = this.fechaReferencia();
+    if (!ff) return;
+
+    const rawEntries = this.sbcEntries();
+    const resultados = this.calculator.calcularProyeccionAnual(
+      rawEntries,
+      ff,
+      fr,
+      this.semanasReferencia(),
+      this.salarioMinimoGeneral(),
+      this.edadRetiro(),
+      this.estadoCivil(),
+      this.hijosCount(),
+      this.padresCount(),
+    );
+
+    this.proyeccionAnual.set(resultados);
   }
 
   formatHasta(hasta: number): string {
