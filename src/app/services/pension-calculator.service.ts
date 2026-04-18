@@ -562,9 +562,20 @@ export class PensionCalculatorService {
     const resultados: ProyeccionMensual[] = [];
 
     for (let i = 0; i < 12; i++) {
-      const fechaFinal = new Date(
-        Date.UTC(fechaFinalBase.getFullYear(), fechaFinalBase.getMonth() + i + 1, 0),
-      );
+      let fechaFinal: Date;
+      if (i === 0) {
+        fechaFinal = new Date(
+          Date.UTC(
+            fechaFinalBase.getFullYear(),
+            fechaFinalBase.getMonth(),
+            fechaFinalBase.getDate(),
+          ),
+        );
+      } else {
+        fechaFinal = new Date(
+          Date.UTC(fechaFinalBase.getFullYear(), fechaFinalBase.getMonth() + i + 1, 0),
+        );
+      }
 
       const computedEntries = this.calcularFechasFinAuto(rawEntries, fechaFinal);
       const corteInfo = this.calcularCorte250(computedEntries);
