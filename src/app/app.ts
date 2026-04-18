@@ -116,6 +116,8 @@ export class App {
 
     this.pensionResult.set(result);
     this.hasCalculated.set(true);
+    this.calcularProyeccionAnual();
+    this.showProyeccion.set(true);
 
     setTimeout(() => {
       document.getElementById('result')?.scrollIntoView({ behavior: 'smooth' });
