@@ -17,7 +17,6 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class PensionCalculatorService {
-
   static parseDateInput(value: string | null | undefined): Date | null {
     if (!value) return null;
     const [y, m, d] = value.split('-').map(Number);
@@ -76,7 +75,8 @@ export class PensionCalculatorService {
   }
 
   calcularCorte250(entries: SbcEntry[]): Corte250Info {
-    const sorted = [...entries].filter(e => e.sbc > 0 && e.fechaInicio && e.fechaFin)
+    const sorted = [...entries]
+      .filter((e) => e.sbc > 0 && e.fechaInicio && e.fechaFin)
       .sort((a, b) => (b.fechaInicio?.getTime() ?? 0) - (a.fechaInicio?.getTime() ?? 0));
 
     if (sorted.length === 0) {
@@ -101,9 +101,10 @@ export class PensionCalculatorService {
         totalSemanasOriginales,
         totalSemanasEfectivas: totalSemanasOriginales,
         excede250: false,
-        mensaje: totalSemanasOriginales < SEMANAS_PROMEDIO
-          ? `Total: ${totalSemanasOriginales} semanas. Faltan ${SEMANAS_PROMEDIO - totalSemanasOriginales} semanas para completar las ${SEMANAS_PROMEDIO} requeridas.`
-          : `Total: ${totalSemanasOriginales} semanas (= ${SEMANAS_PROMEDIO} semanas). Se alcanzan las ${SEMANAS_PROMEDIO} semanas.`,
+        mensaje:
+          totalSemanasOriginales < SEMANAS_PROMEDIO
+            ? `Total: ${totalSemanasOriginales} semanas. Faltan ${SEMANAS_PROMEDIO - totalSemanasOriginales} semanas para completar las ${SEMANAS_PROMEDIO} requeridas.`
+            : `Total: ${totalSemanasOriginales} semanas (= ${SEMANAS_PROMEDIO} semanas). Se alcanzan las ${SEMANAS_PROMEDIO} semanas.`,
       };
     }
 
@@ -139,15 +140,16 @@ export class PensionCalculatorService {
 
   calcularEffectiveEntries(entries: SbcEntry[], corteInfo: Corte250Info): SbcEntry[] {
     if (!corteInfo.excede250) {
-      return entries.map(e => ({ ...e, efectivo: true, semanasEfectivas: e.semanas }));
+      return entries.map((e) => ({ ...e, efectivo: true, semanasEfectivas: e.semanas }));
     }
 
-    const sorted = [...entries].filter(e => e.sbc > 0 && e.fechaInicio && e.fechaFin)
+    const sorted = [...entries]
+      .filter((e) => e.sbc > 0 && e.fechaInicio && e.fechaFin)
       .sort((a, b) => (b.fechaInicio?.getTime() ?? 0) - (a.fechaInicio?.getTime() ?? 0));
 
     let semanasRestantes = SEMANAS_PROMEDIO;
 
-    return sorted.map(entry => {
+    return sorted.map((entry) => {
       const effective = { ...entry, efectivo: true, semanasEfectivas: 0 };
       const sem = entry.semanas || 0;
 
@@ -171,7 +173,10 @@ export class PensionCalculatorService {
     });
   }
 
-  calcularSalarioPromedioFromEffective(entries: SbcEntry[]): { promedio: number; totalSemanas: number } {
+  calcularSalarioPromedioFromEffective(entries: SbcEntry[]): {
+    promedio: number;
+    totalSemanas: number;
+  } {
     let totalProducto = 0;
     let totalSemanas = 0;
 
@@ -204,15 +209,20 @@ export class PensionCalculatorService {
     return semanasCompletas;
   }
 
-  buscarPorcentajesTabla(factor: number): { cuantiaBasica: number; incrementoAnual: number; grupo: string } {
+  buscarPorcentajesTabla(factor: number): {
+    cuantiaBasica: number;
+    incrementoAnual: number;
+    grupo: string;
+  } {
     for (const row of ART167_TABLE) {
       if (factor >= row.desde && factor <= row.hasta) {
         return {
           cuantiaBasica: row.porcentajeCuantiaBasica,
           incrementoAnual: row.porcentajeIncrementoAnual,
-          grupo: row.hasta === Infinity
-            ? `Mayor a ${row.desde.toFixed(2)} veces SMG`
-            : `De ${row.desde.toFixed(2)} a ${row.hasta.toFixed(2)} veces SMG`,
+          grupo:
+            row.hasta === Infinity
+              ? `Mayor a ${row.desde.toFixed(2)} veces SMG`
+              : `De ${row.desde.toFixed(2)} a ${row.hasta.toFixed(2)} veces SMG`,
         };
       }
     }
@@ -224,7 +234,13 @@ export class PensionCalculatorService {
     };
   }
 
-  calcularReglaRedondeo(semanasExcedentes: number): { anos: number; divisionExacta: number; parteDecimal: number; regla: string; anosEfectivos: number } {
+  calcularReglaRedondeo(semanasExcedentes: number): {
+    anos: number;
+    divisionExacta: number;
+    parteDecimal: number;
+    regla: string;
+    anosEfectivos: number;
+  } {
     const divisionExacta = semanasExcedentes / 52;
     const anos = Math.floor(divisionExacta);
     const parteDecimal = divisionExacta - anos;
@@ -246,7 +262,11 @@ export class PensionCalculatorService {
     return { anos, divisionExacta, parteDecimal, regla, anosEfectivos };
   }
 
-  calcularAsignaciones(estadoCivil: EstadoCivil, hijosCount: number, padresCount: number): AsignacionFamiliar[] {
+  calcularAsignaciones(
+    estadoCivil: EstadoCivil,
+    hijosCount: number,
+    padresCount: number,
+  ): AsignacionFamiliar[] {
     const asignaciones: AsignacionFamiliar[] = [];
 
     if (estadoCivil === 'casado' || estadoCivil === 'concubina') {
@@ -267,7 +287,7 @@ export class PensionCalculatorService {
       asignaciones.push({
         tipo: 'hijo',
         descripcion: `Hijo ${i + 1} menor de 16 años o hasta 25 si estudia (10%)`,
-        porcentaje: 0.10,
+        porcentaje: 0.1,
       });
     }
 
@@ -275,7 +295,7 @@ export class PensionCalculatorService {
       asignaciones.push({
         tipo: 'padre',
         descripcion: `Padre/Madre dependiente ${i + 1} (10%)`,
-        porcentaje: 0.10,
+        porcentaje: 0.1,
       });
     }
 
@@ -283,7 +303,7 @@ export class PensionCalculatorService {
   }
 
   buscarFactorEdad(edad: number): { factor: number; label: string } {
-    const found = EDAD_FACTORES.find(e => e.edad === edad);
+    const found = EDAD_FACTORES.find((e) => e.edad === edad);
     if (found) return found;
     if (edad < 60) return { factor: 0, label: 'Edad menor a 60 — No aplica' };
     if (edad > 65) return EDAD_FACTORES[EDAD_FACTORES.length - 1];
@@ -302,13 +322,15 @@ export class PensionCalculatorService {
   ): PensionResult {
     const steps: CalculationStep[] = [];
 
-    const { promedio: spd, totalSemanas } = this.calcularSalarioPromedioFromEffective(effectiveEntries);
+    const { promedio: spd, totalSemanas } =
+      this.calcularSalarioPromedioFromEffective(effectiveEntries);
 
     const sbcTopado = Math.min(spd, UMA_2026 * 25);
 
-    const periodoStr = corteInfo.fechaInicioConsiderada && corteInfo.fechaFinConsiderada
-      ? `del ${corteInfo.fechaInicioConsiderada.toLocaleDateString('es-MX')} al ${corteInfo.fechaFinConsiderada.toLocaleDateString('es-MX')}`
-      : '';
+    const periodoStr =
+      corteInfo.fechaInicioConsiderada && corteInfo.fechaFinConsiderada
+        ? `del ${corteInfo.fechaInicioConsiderada.toLocaleDateString('es-MX')} al ${corteInfo.fechaFinConsiderada.toLocaleDateString('es-MX')}`
+        : '';
 
     const paso1: CalculationStep = {
       paso: 1,
@@ -329,16 +351,23 @@ export class PensionCalculatorService {
     steps.push(paso1);
 
     const factorRelacion = salarioMinimoGeneral > 0 ? sbcTopado / salarioMinimoGeneral : 0;
-    const { cuantiaBasica: pctCuantiaBasica, incrementoAnual: pctIncremento, grupo } =
-      this.buscarPorcentajesTabla(factorRelacion);
+    const {
+      cuantiaBasica: pctCuantiaBasica,
+      incrementoAnual: pctIncremento,
+      grupo,
+    } = this.buscarPorcentajesTabla(factorRelacion);
 
     const paso2: CalculationStep = {
       paso: 2,
       titulo: 'Factor de Relación con el SMG',
-      descripcion: 'Se divide el SPD topado entre el Salario Mínimo General para ubicar el renglón en la tabla del Art. 167',
+      descripcion:
+        'Se divide el SPD topado entre el Salario Mínimo General para ubicar el renglón en la tabla del Art. 167',
       valores: [
         { label: 'SPD topado', value: PensionCalculatorService.formatCurrency(sbcTopado) },
-        { label: 'SMG vigente', value: PensionCalculatorService.formatCurrency(salarioMinimoGeneral) },
+        {
+          label: 'SMG vigente',
+          value: PensionCalculatorService.formatCurrency(salarioMinimoGeneral),
+        },
         { label: 'Factor de relación', value: factorRelacion.toFixed(4) },
         { label: 'Grupo en tabla Art. 167', value: grupo },
         { label: '% Cuantía Básica', value: `${pctCuantiaBasica}%` },
@@ -358,7 +387,10 @@ export class PensionCalculatorService {
       valores: [
         { label: 'SPD topado', value: PensionCalculatorService.formatCurrency(sbcTopado) },
         { label: '% Cuantía Básica', value: `${pctCuantiaBasica}%` },
-        { label: 'Factor diario', value: PensionCalculatorService.formatCurrency(sbcTopado * (pctCuantiaBasica / 100)) },
+        {
+          label: 'Factor diario',
+          value: PensionCalculatorService.formatCurrency(sbcTopado * (pctCuantiaBasica / 100)),
+        },
         { label: '× 365 días', value: '365' },
       ],
       resultado: cuantiaBasicaAnual,
@@ -367,7 +399,8 @@ export class PensionCalculatorService {
     steps.push(paso3);
 
     const semanasExcedentes = Math.max(0, semanasCotizadas - MIN_SEMANAS);
-    const { anos, divisionExacta, parteDecimal, regla, anosEfectivos } = this.calcularReglaRedondeo(semanasExcedentes);
+    const { anos, divisionExacta, parteDecimal, regla, anosEfectivos } =
+      this.calcularReglaRedondeo(semanasExcedentes);
     const incrementoAnualUnitario = sbcTopado * (pctIncremento / 100) * 365;
     const incrementoAnualTotal = incrementoAnualUnitario * anosEfectivos;
 
@@ -384,7 +417,10 @@ export class PensionCalculatorService {
         { label: 'Parte decimal', value: parteDecimal.toFixed(4) },
         { label: 'Regla de redondeo', value: regla },
         { label: 'Años efectivos de incremento', value: anosEfectivos.toString() },
-        { label: 'Incremento anual unitario', value: PensionCalculatorService.formatCurrency(incrementoAnualUnitario) },
+        {
+          label: 'Incremento anual unitario',
+          value: PensionCalculatorService.formatCurrency(incrementoAnualUnitario),
+        },
       ],
       resultado: incrementoAnualTotal,
       resultadoLabel: 'Incremento Anual Total (Resultado B)',
@@ -399,8 +435,14 @@ export class PensionCalculatorService {
       titulo: 'Suma Base y Factor Fox',
       descripcion: `Se suma la Cuantía Básica + los Incrementos Anuales y se aplica el Factor Fox (${FACTOR_FOX}) — incremento del 11% por decreto`,
       valores: [
-        { label: 'Cuantía Básica Anual (A)', value: PensionCalculatorService.formatCurrency(cuantiaBasicaAnual) },
-        { label: 'Incremento Anual Total (B)', value: PensionCalculatorService.formatCurrency(incrementoAnualTotal) },
+        {
+          label: 'Cuantía Básica Anual (A)',
+          value: PensionCalculatorService.formatCurrency(cuantiaBasicaAnual),
+        },
+        {
+          label: 'Incremento Anual Total (B)',
+          value: PensionCalculatorService.formatCurrency(incrementoAnualTotal),
+        },
         { label: 'Suma Base (A + B)', value: PensionCalculatorService.formatCurrency(sumaBase) },
         { label: 'Factor Fox', value: FACTOR_FOX.toString() },
       ],
@@ -417,15 +459,25 @@ export class PensionCalculatorService {
     const paso6: CalculationStep = {
       paso: 6,
       titulo: 'Asignaciones Familiares',
-      descripcion: 'Se añaden los porcentajes correspondientes por cónyuge/soledad (15%), hijos (10% c/u) y padres dependientes (10% c/u)',
+      descripcion:
+        'Se añaden los porcentajes correspondientes por cónyuge/soledad (15%), hijos (10% c/u) y padres dependientes (10% c/u)',
       valores: [
-        ...asignaciones.map(a => ({
+        ...asignaciones.map((a) => ({
           label: a.descripcion,
           value: PensionCalculatorService.formatCurrency(montoConFactorFox * a.porcentaje),
         })),
-        { label: 'Total asignaciones', value: `${(totalPorcentajeAsignaciones * 100).toFixed(0)}%` },
-        { label: 'Monto de asignaciones', value: PensionCalculatorService.formatCurrency(montoAsignaciones) },
-        { label: 'Subtotal con Factor Fox', value: PensionCalculatorService.formatCurrency(montoConFactorFox) },
+        {
+          label: 'Total asignaciones',
+          value: `${(totalPorcentajeAsignaciones * 100).toFixed(0)}%`,
+        },
+        {
+          label: 'Monto de asignaciones',
+          value: PensionCalculatorService.formatCurrency(montoAsignaciones),
+        },
+        {
+          label: 'Subtotal con Factor Fox',
+          value: PensionCalculatorService.formatCurrency(montoConFactorFox),
+        },
       ],
       resultado: montoConAsignaciones,
       resultadoLabel: 'Monto con Asignaciones Familiares',
@@ -443,7 +495,10 @@ export class PensionCalculatorService {
       valores: [
         { label: 'Edad de retiro', value: `${edad} años` },
         { label: 'Factor aplicado', value: factorEdadLabel },
-        { label: 'Monto antes de factor de edad', value: PensionCalculatorService.formatCurrency(montoConAsignaciones) },
+        {
+          label: 'Monto antes de factor de edad',
+          value: PensionCalculatorService.formatCurrency(montoConAsignaciones),
+        },
       ],
       resultado: pensionAnual,
       resultadoLabel: 'Pensión Anual',
@@ -477,5 +532,4 @@ export class PensionCalculatorService {
       steps,
     };
   }
-
-  }
+}

@@ -1,18 +1,23 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { SbcGridComponent } from './components/sbc-grid/sbc-grid';
 import { PensionFormComponent } from './components/pension-form/pension-form';
 import { CalculationBreakdownComponent } from './components/calculation-breakdown/calculation-breakdown';
 import { PensionResultComponent } from './components/pension-result/pension-result';
 import { PensionCalculatorService } from './services/pension-calculator.service';
 import { PdfGeneratorService } from './services/pdf-generator.service';
-import { SbcEntry, PensionResult, EstadoCivil, Corte250Info, ART167_TABLE, DEFAULT_CONFIG } from './models/pension.model';
+import {
+  SbcEntry,
+  PensionResult,
+  EstadoCivil,
+  Corte250Info,
+  ART167_TABLE,
+  DEFAULT_CONFIG,
+} from './models/pension.model';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    FormsModule,
     SbcGridComponent,
     PensionFormComponent,
     CalculationBreakdownComponent,
@@ -76,7 +81,7 @@ export class App {
 
   canCalculate = computed(() => {
     const effective = this.effectiveEntries();
-    return effective.length > 0 && effective.some(e => e.sbc > 0) && !this.hasOverlaps();
+    return effective.length > 0 && effective.some((e) => e.sbc > 0) && !this.hasOverlaps();
   });
 
   showTable = signal(false);
@@ -153,7 +158,7 @@ export class App {
   }
 
   toggleTable(): void {
-    this.showTable.update(v => !v);
+    this.showTable.update((v) => !v);
   }
 
   formatHasta(hasta: number): string {

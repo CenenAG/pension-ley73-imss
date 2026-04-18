@@ -11,7 +11,9 @@
       [value]="fechaFinal() ? formatDate(fechaFinal()!) : ''"
       (change)="onFechaFinalChange($event)"
     />
-    <span class="hint">último día cotizado o fecha de baja. Define el final de las últimas 250 semanas.</span>
+    <span class="hint"
+      >último día cotizado o fecha de baja. Define el final de las últimas 250 semanas.</span
+    >
   </div>
 
   <div class="grid-actions">
@@ -35,14 +37,22 @@
       </thead>
       <tbody>
         @for (entry of displayEntries(); track entry.id; let i = $index) {
-          <tr [class.row-excluded]="isEntryExcluded(entry)" [class.row-overlap]="isOverlapping(entry)" [class.row-partial]="isEntryPartial(entry)">
+          <tr
+            [class.row-excluded]="isEntryExcluded(entry)"
+            [class.row-overlap]="isOverlapping(entry)"
+            [class.row-partial]="isEntryPartial(entry)"
+          >
             <td class="col-status">
               @if (isEntryExcluded(entry)) {
                 <span class="status-dot excluded" title="Fuera del periodo de 250 semanas">●</span>
               } @else if (isOverlapping(entry)) {
                 <span class="status-dot overlap" title="Este período se traslapa con otro">⚠</span>
               } @else if (isEntryPartial(entry)) {
-                <span class="status-dot partial" title="Parcialmente dentro del periodo de 250 semanas">◐</span>
+                <span
+                  class="status-dot partial"
+                  title="Parcialmente dentro del periodo de 250 semanas"
+                  >◐</span
+                >
               } @else if (entry.sbc > 0 && entry.fechaInicio) {
                 <span class="status-dot included" title="Dentro del periodo de 250 semanas">●</span>
               }
@@ -73,7 +83,7 @@
                 (change)="onFechaFinChange(i, $event)"
               />
             </td>
-            <td class="col-num">{{ (entry.semanas || entry.dias) ? entrySemanas(entry) : '—' }}</td>
+            <td class="col-num">{{ entry.semanas || entry.dias ? entrySemanas(entry) : '—' }}</td>
             @if (corteInfo().excede250) {
               <td class="col-num">
                 @if (isEntryExcluded(entry)) {
@@ -97,9 +107,13 @@
           <td><strong>Total registrado</strong></td>
           <td></td>
           <td></td>
-          <td class="col-num"><strong>{{ totalSemanas() }}</strong></td>
+          <td class="col-num">
+            <strong>{{ totalSemanas() }}</strong>
+          </td>
           @if (corteInfo().excede250) {
-            <td class="col-num"><strong>{{ effectiveTotalSemanas() }}</strong></td>
+            <td class="col-num">
+              <strong>{{ effectiveTotalSemanas() }}</strong>
+            </td>
           }
           <td></td>
         </tr>
@@ -109,15 +123,24 @@
             <td><strong>Considerado (250 semanas)</strong></td>
             <td></td>
             <td></td>
-            <td class="col-num"><strong>{{ effectiveTotalSemanas() }} sem.</strong></td>
+            <td class="col-num">
+              <strong>{{ effectiveTotalSemanas() }} sem.</strong>
+            </td>
             <td></td>
           </tr>
         }
         @if (promedioPonderado() > 0) {
           <tr class="promedio">
             <td></td>
-            <td colspan="3"><strong>Promedio ponderado SBC {{ corteInfo().excede250 ? '(últimas 250 semanas)' : '' }}</strong></td>
-            <td colspan="3"><strong>{{ promedioPonderado() | currencyMXN }}</strong></td>
+            <td [attr.colspan]="corteInfo().excede250 ? 5 : 4">
+              <strong
+                >Promedio ponderado SBC
+                {{ corteInfo().excede250 ? '(últimas 250 semanas)' : '' }}</strong
+              >
+            </td>
+            <td [attr.colspan]="corteInfo().excede250 ? 2 : 3">
+              <strong>{{ promedioPonderado() | currencyMXN }}</strong>
+            </td>
           </tr>
         }
       </tfoot>
@@ -127,7 +150,8 @@
   @if (corteInfo().fechaInicioConsiderada && corteInfo().fechaFinConsiderada) {
     <div class="periodo-info">
       <span class="periodo-label">Periodo considerado:</span>
-      {{ corteInfo().fechaInicioConsiderada!.toLocaleDateString('es-MX') }} al {{ corteInfo().fechaFinConsiderada!.toLocaleDateString('es-MX') }}
+      {{ corteInfo().fechaInicioConsiderada!.toLocaleDateString('es-MX') }} al
+      {{ corteInfo().fechaFinConsiderada!.toLocaleDateString('es-MX') }}
       @if (corteInfo().excede250) {
         — <strong>{{ effectiveTotalSemanas() }} semanas efectivas</strong> de 250 requeridas
       } @else {
@@ -146,22 +170,28 @@
     </div>
   } @else if (totalSemanas() >= 250) {
     <div class="success">
-      Periodo completo: {{ totalSemanas() }} semanas (regla IMSS: días ÷ 7, sobrante >3 = +1 semana).
+      Periodo completo: {{ totalSemanas() }} semanas (regla IMSS: días ÷ 7, sobrante >3 = +1
+      semana).
     </div>
   }
 
   @if (overlappingIds().size > 0) {
     <div class="overlap-warning">
-      ⚠ Hay períodos con fechas traslapadas. Corrija las fechas para que no exista traslape entre Fecha Inicio y Fecha Fin de distintos renglones.
+      ⚠ Hay períodos con fechas traslapadas. Corrija las fechas para que no exista traslape entre
+      Fecha Inicio y Fecha Fin de distintos renglones.
     </div>
   }
 
   <div class="legend">
-    <span class="legend-item"><span class="status-dot included">●</span> Dentro de 250 semanas</span>
+    <span class="legend-item"
+      ><span class="status-dot included">●</span> Dentro de 250 semanas</span
+    >
     <span class="legend-item"><span class="status-dot partial">◐</span> Parcialmente incluido</span>
     <span class="legend-item"><span class="status-dot excluded">●</span> Fuera de 250 semanas</span>
     <span class="legend-item"><span class="status-dot overlap">⚠</span> Traslape</span>
-    <span class="legend-item hint">Semanas IMSS: días ÷ 7, sobrante >3 = +1 semana. Fecha Fin editable.</span>
+    <span class="legend-item hint"
+      >Semanas IMSS: días ÷ 7, sobrante >3 = +1 semana. Fecha Fin editable.</span
+    >
   </div>
 
   @if (pendingRemoveIndex() !== null) {
@@ -170,7 +200,9 @@
         <p class="modal-message">¿Eliminar este período?</p>
         <div class="modal-actions">
           <button type="button" class="modal-btn-cancel" (click)="cancelRemove()">Cancelar</button>
-          <button type="button" class="modal-btn-confirm" (click)="executeRemove()">Eliminar</button>
+          <button type="button" class="modal-btn-confirm" (click)="executeRemove()">
+            Eliminar
+          </button>
         </div>
       </div>
     </div>

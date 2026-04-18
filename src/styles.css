@@ -1,6 +1,8 @@
 /* Fonts loaded via preload in index.html for better performance */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -11,8 +13,13 @@ html {
   font-size: 15px;
 }
 
-html, body {
-  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+html,
+body {
+  font-family:
+    'Outfit',
+    system-ui,
+    -apple-system,
+    sans-serif;
   background: #f5f5f0;
   color: #1a1a2e;
   line-height: 1.55;
@@ -24,13 +31,16 @@ body {
   min-height: 100vh;
 }
 
-input, select, button, textarea {
+input,
+select,
+button,
+textarea {
   font-family: inherit;
 }
 
-input[type="number"],
-input[type="date"],
-[style*="tabular-nums"] {
+input[type='number'],
+input[type='date'],
+[style*='tabular-nums'] {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-variant-numeric: tabular-nums;
 }
@@ -38,4 +48,30 @@ input[type="date"],
 ::selection {
   background: #0d948840;
   color: #134e4a;
+}
+
+@media print {
+  .app-header,
+  .calculate-bar,
+  .app-footer,
+  .btn-primary,
+  .btn-secondary,
+  .btn-add,
+  .btn-remove,
+  .grid-actions,
+  .section-actions,
+  .empty-state,
+  .modal-overlay,
+  .overlap-warning {
+    display: none !important;
+  }
+  .section {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+  .result-main {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
