@@ -4,9 +4,10 @@ export interface SbcEntry {
   fechaInicio: Date | null;
   fechaFin: Date | null;
   dias: number;
-  semanas: number;
-  efectivo?: boolean;
+  semanas?: number;
   semanasEfectivas?: number;
+  efectivo?: boolean;
+  diasEfectivos?: number;
   fechaFinManual?: boolean;
 }
 
@@ -121,6 +122,7 @@ export const SMG_DEFAULT = 315.04;
 export const FACTOR_FOX = 1.11;
 export const MIN_SEMANAS = 500;
 export const SEMANAS_PROMEDIO = 250;
+export const MS_PER_DAY = 86400000;
 
 export const DEFAULT_CONFIG = {
   fechaFinal: new Date(Date.UTC(2026, 8, 30)),

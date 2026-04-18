@@ -1,7 +1,20 @@
 import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
-import { PensionResult, Corte250Info, SbcEntry } from '../models/pension.model';
+import { PensionResult, Corte250Info, SbcEntry, EstadoCivil } from '../models/pension.model';
 import { PensionCalculatorService } from './pension-calculator.service';
+
+export interface PdfOptions {
+  fechaReferencia: Date | null;
+  fechaFinal: Date | null;
+  semanasReferencia: number;
+  semanasAdicionales: number;
+  semanasCotizadas: number;
+  effectiveEntries: SbcEntry[];
+  corteInfo: Corte250Info;
+  salarioMinimoGeneral: number;
+  edadRetiro: number;
+  estadoCivil: EstadoCivil;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PdfGeneratorService {
@@ -15,18 +28,7 @@ export class PdfGeneratorService {
 
   generate(
     result: PensionResult,
-    opts: {
-      fechaReferencia: Date | null;
-      fechaFinal: Date | null;
-      semanasReferencia: number;
-      semanasAdicionales: number;
-      semanasCotizadas: number;
-      effectiveEntries: SbcEntry[];
-      corteInfo: Corte250Info;
-      salarioMinimoGeneral: number;
-      edadRetiro: number;
-      estadoCivil: string;
-    },
+    opts: PdfOptions,
   ): void {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
@@ -70,7 +72,7 @@ export class PdfGeneratorService {
     return 42;
   }
 
-  private drawContextBar(doc: jsPDF, y: number, opts: any, pw: number): number {
+  private drawContextBar(doc: jsPDF, y: number, opts: PdfOptions, pw: number): number {
     const cw = this.cw(doc);
     doc.setFillColor(248, 248, 245);
     doc.rect(this.M, y, cw, 20, 'F');
@@ -120,7 +122,7 @@ export class PdfGeneratorService {
     return y + 24;
   }
 
-  private drawSbcTable(doc: jsPDF, startY: number, opts: any, pw: number, ph: number): number {
+  private drawSbcTable(doc: jsPDF, startY: number, opts: PdfOptions, pw: number, ph: number): number {
     const entries: SbcEntry[] = opts.effectiveEntries ?? [];
     const corteInfo: Corte250Info = opts.corteInfo;
     const showEffective = corteInfo.excede250;

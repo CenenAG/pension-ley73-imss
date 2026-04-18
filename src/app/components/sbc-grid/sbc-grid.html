@@ -35,7 +35,7 @@
       </thead>
       <tbody>
         @for (entry of displayEntries(); track entry.id; let i = $index) {
-          <tr class="{{ isEntryExcluded(entry) ? 'row-excluded' : (isOverlapping(entry) ? 'row-overlap' : (isEntryPartial(entry) ? 'row-partial' : '')) }}">
+          <tr [class.row-excluded]="isEntryExcluded(entry)" [class.row-overlap]="isOverlapping(entry)" [class.row-partial]="isEntryPartial(entry)">
             <td class="col-status">
               @if (isEntryExcluded(entry)) {
                 <span class="status-dot excluded" title="Fuera del periodo de 250 semanas">●</span>
@@ -85,7 +85,7 @@
             }
             <td class="col-action">
               @if (entries().length > 1) {
-                <button type="button" class="btn-remove" (click)="removeRow(i)">✕</button>
+                <button type="button" class="btn-remove" (click)="confirmRemove(i)">✕</button>
               }
             </td>
           </tr>
@@ -163,4 +163,16 @@
     <span class="legend-item"><span class="status-dot overlap">⚠</span> Traslape</span>
     <span class="legend-item hint">Semanas IMSS: días ÷ 7, sobrante >3 = +1 semana. Fecha Fin editable.</span>
   </div>
+
+  @if (pendingRemoveIndex() !== null) {
+    <div class="modal-overlay" (click)="cancelRemove()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <p class="modal-message">¿Eliminar este período?</p>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn-cancel" (click)="cancelRemove()">Cancelar</button>
+          <button type="button" class="modal-btn-confirm" (click)="executeRemove()">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

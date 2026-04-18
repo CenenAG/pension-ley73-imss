@@ -163,12 +163,24 @@ export class SbcGridComponent {
     this.entriesChange.emit(updated);
   }
 
-  removeRow(index: number): void {
-    if (!confirm('¿Eliminar este período?')) return;
+  pendingRemoveIndex = signal<number | null>(null);
+
+  confirmRemove(index: number): void {
+    this.pendingRemoveIndex.set(index);
+  }
+
+  executeRemove(): void {
+    const index = this.pendingRemoveIndex();
+    if (index === null) return;
+    this.pendingRemoveIndex.set(null);
     const updated = [...this.entries()];
     updated.splice(index, 1);
     this.emitOverlapState(updated);
     this.entriesChange.emit(updated);
+  }
+
+  cancelRemove(): void {
+    this.pendingRemoveIndex.set(null);
   }
 
   private recalculateDates(fechaFinal: Date | null): void {

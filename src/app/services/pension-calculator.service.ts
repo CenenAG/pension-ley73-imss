@@ -7,6 +7,7 @@ import {
   FACTOR_FOX,
   MIN_SEMANAS,
   SEMANAS_PROMEDIO,
+  MS_PER_DAY,
   PensionResult,
   CalculationStep,
   AsignacionFamiliar,
@@ -101,8 +102,8 @@ export class PensionCalculatorService {
         totalSemanasEfectivas: totalSemanasOriginales,
         excede250: false,
         mensaje: totalSemanasOriginales < SEMANAS_PROMEDIO
-          ? `Total: ${totalSemanasOriginales} semanas. Faltan ${SEMANAS_PROMEDIO - totalSemanasOriginales} semanas para completar las 250 requeridas.`
-          : `Total: ${totalSemanasOriginales} semanas (= 250 semanas). Se alcanzan las 250 semanas.`,
+          ? `Total: ${totalSemanasOriginales} semanas. Faltan ${SEMANAS_PROMEDIO - totalSemanasOriginales} semanas para completar las ${SEMANAS_PROMEDIO} requeridas.`
+          : `Total: ${totalSemanasOriginales} semanas (= ${SEMANAS_PROMEDIO} semanas). Se alcanzan las ${SEMANAS_PROMEDIO} semanas.`,
       };
     }
 
@@ -132,7 +133,7 @@ export class PensionCalculatorService {
       totalSemanasOriginales,
       totalSemanasEfectivas: SEMANAS_PROMEDIO,
       excede250: true,
-      mensaje: `Se exceden las 250 semanas (${totalSemanasOriginales}). Se consideran las últimas 250 semanas a partir del ${fechaInicioConsiderada!.toLocaleDateString('es-MX')}.`,
+      mensaje: `Se exceden las ${SEMANAS_PROMEDIO} semanas (${totalSemanasOriginales}). Se consideran las últimas ${SEMANAS_PROMEDIO} semanas a partir del ${fechaInicioConsiderada!.toLocaleDateString('es-MX')}.`,
     };
   }
 
@@ -190,7 +191,7 @@ export class PensionCalculatorService {
     if (!inicio || !fin) return 0;
     const startUtc = Date.UTC(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
     const endUtc = Date.UTC(fin.getFullYear(), fin.getMonth(), fin.getDate());
-    const diffDays = Math.round((endUtc - startUtc) / 86400000);
+    const diffDays = Math.round((endUtc - startUtc) / MS_PER_DAY);
     return diffDays + 1;
   }
 
@@ -313,14 +314,14 @@ export class PensionCalculatorService {
       paso: 1,
       titulo: 'Salario Promedio Diario (SPD)',
       descripcion: corteInfo.excede250
-        ? `Se calcula el promedio ponderado con las últimas 250 semanas cotizadas ${periodoStr}`
+        ? `Se calcula el promedio ponderado con las últimas ${SEMANAS_PROMEDIO} semanas cotizadas ${periodoStr}`
         : `Se calcula el promedio ponderado de los SBC con las ${totalSemanas} semanas disponibles ${periodoStr}`,
       valores: [
         { label: 'Semanas efectivas consideradas', value: totalSemanas.toLocaleString() },
         { label: 'Semanas requeridas', value: SEMANAS_PROMEDIO.toLocaleString() },
-        { label: 'SPD calculado', value: this.formatCurrency(spd) },
-        { label: 'Tope (25 UMAs)', value: this.formatCurrency(UMA_2026 * 25) },
-        { label: 'SPD topado', value: this.formatCurrency(sbcTopado) },
+        { label: 'SPD calculado', value: PensionCalculatorService.formatCurrency(spd) },
+        { label: 'Tope (25 UMAs)', value: PensionCalculatorService.formatCurrency(UMA_2026 * 25) },
+        { label: 'SPD topado', value: PensionCalculatorService.formatCurrency(sbcTopado) },
       ],
       resultado: sbcTopado,
       resultadoLabel: 'SPD utilizado para el cálculo',
@@ -336,8 +337,8 @@ export class PensionCalculatorService {
       titulo: 'Factor de Relación con el SMG',
       descripcion: 'Se divide el SPD topado entre el Salario Mínimo General para ubicar el renglón en la tabla del Art. 167',
       valores: [
-        { label: 'SPD topado', value: this.formatCurrency(sbcTopado) },
-        { label: 'SMG vigente', value: this.formatCurrency(salarioMinimoGeneral) },
+        { label: 'SPD topado', value: PensionCalculatorService.formatCurrency(sbcTopado) },
+        { label: 'SMG vigente', value: PensionCalculatorService.formatCurrency(salarioMinimoGeneral) },
         { label: 'Factor de relación', value: factorRelacion.toFixed(4) },
         { label: 'Grupo en tabla Art. 167', value: grupo },
         { label: '% Cuantía Básica', value: `${pctCuantiaBasica}%` },
@@ -355,9 +356,9 @@ export class PensionCalculatorService {
       titulo: 'Cuantía Básica Anual',
       descripcion: 'Se multiplica el SPD topado por el porcentaje de cuantía básica y por 365 días',
       valores: [
-        { label: 'SPD topado', value: this.formatCurrency(sbcTopado) },
+        { label: 'SPD topado', value: PensionCalculatorService.formatCurrency(sbcTopado) },
         { label: '% Cuantía Básica', value: `${pctCuantiaBasica}%` },
-        { label: 'Factor diario', value: this.formatCurrency(sbcTopado * (pctCuantiaBasica / 100)) },
+        { label: 'Factor diario', value: PensionCalculatorService.formatCurrency(sbcTopado * (pctCuantiaBasica / 100)) },
         { label: '× 365 días', value: '365' },
       ],
       resultado: cuantiaBasicaAnual,
@@ -383,7 +384,7 @@ export class PensionCalculatorService {
         { label: 'Parte decimal', value: parteDecimal.toFixed(4) },
         { label: 'Regla de redondeo', value: regla },
         { label: 'Años efectivos de incremento', value: anosEfectivos.toString() },
-        { label: 'Incremento anual unitario', value: this.formatCurrency(incrementoAnualUnitario) },
+        { label: 'Incremento anual unitario', value: PensionCalculatorService.formatCurrency(incrementoAnualUnitario) },
       ],
       resultado: incrementoAnualTotal,
       resultadoLabel: 'Incremento Anual Total (Resultado B)',
@@ -398,9 +399,9 @@ export class PensionCalculatorService {
       titulo: 'Suma Base y Factor Fox',
       descripcion: `Se suma la Cuantía Básica + los Incrementos Anuales y se aplica el Factor Fox (${FACTOR_FOX}) — incremento del 11% por decreto`,
       valores: [
-        { label: 'Cuantía Básica Anual (A)', value: this.formatCurrency(cuantiaBasicaAnual) },
-        { label: 'Incremento Anual Total (B)', value: this.formatCurrency(incrementoAnualTotal) },
-        { label: 'Suma Base (A + B)', value: this.formatCurrency(sumaBase) },
+        { label: 'Cuantía Básica Anual (A)', value: PensionCalculatorService.formatCurrency(cuantiaBasicaAnual) },
+        { label: 'Incremento Anual Total (B)', value: PensionCalculatorService.formatCurrency(incrementoAnualTotal) },
+        { label: 'Suma Base (A + B)', value: PensionCalculatorService.formatCurrency(sumaBase) },
         { label: 'Factor Fox', value: FACTOR_FOX.toString() },
       ],
       resultado: montoConFactorFox,
@@ -420,11 +421,11 @@ export class PensionCalculatorService {
       valores: [
         ...asignaciones.map(a => ({
           label: a.descripcion,
-          value: this.formatCurrency(montoConFactorFox * a.porcentaje),
+          value: PensionCalculatorService.formatCurrency(montoConFactorFox * a.porcentaje),
         })),
         { label: 'Total asignaciones', value: `${(totalPorcentajeAsignaciones * 100).toFixed(0)}%` },
-        { label: 'Monto de asignaciones', value: this.formatCurrency(montoAsignaciones) },
-        { label: 'Subtotal con Factor Fox', value: this.formatCurrency(montoConFactorFox) },
+        { label: 'Monto de asignaciones', value: PensionCalculatorService.formatCurrency(montoAsignaciones) },
+        { label: 'Subtotal con Factor Fox', value: PensionCalculatorService.formatCurrency(montoConFactorFox) },
       ],
       resultado: montoConAsignaciones,
       resultadoLabel: 'Monto con Asignaciones Familiares',
@@ -442,7 +443,7 @@ export class PensionCalculatorService {
       valores: [
         { label: 'Edad de retiro', value: `${edad} años` },
         { label: 'Factor aplicado', value: factorEdadLabel },
-        { label: 'Monto antes de factor de edad', value: this.formatCurrency(montoConAsignaciones) },
+        { label: 'Monto antes de factor de edad', value: PensionCalculatorService.formatCurrency(montoConAsignaciones) },
       ],
       resultado: pensionAnual,
       resultadoLabel: 'Pensión Anual',
@@ -477,7 +478,4 @@ export class PensionCalculatorService {
     };
   }
 
-  private formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(value);
   }
-}
